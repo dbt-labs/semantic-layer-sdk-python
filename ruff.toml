@@ -1,0 +1,39 @@
+line-length = 120
+
+select = [
+  "E",   # Pycodestyle
+  "F",   # Pyflakes
+  "W",   # Whitespace
+  "D",   # Pydocs
+  "T20", # Print statements
+  "I",   # isort
+]
+ignore = [
+  # Missing docstring in public module -- often docs handled within classes
+  "D100",
+  # Missing docstring in public package -- often docs handled within files not __init__.py
+  "D104",
+]
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = [
+    "A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM",
+    "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF",
+    "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"
+]
+unfixable = []
+
+
+[pydocstyle]
+convention = "google"
+
+
+[isort]
+known-first-party = ["dbt_sl_client"]
+
+[per-file-ignores]
+# Ignore docs for test files
+"*_test.py" = ["D103"]
+"tests/**" = ["D103"]
+
+# Ignore prints in examples
+"examples/**" = ["T201", "D103"]
