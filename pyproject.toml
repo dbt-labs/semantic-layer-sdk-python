@@ -5,6 +5,10 @@ description = "A client for dbt's Semantic Layer"
 authors = ["serramatutu <lucas.paes@dbtlabs.com>"]
 readme = "README.md"
 
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry.dependencies]
 python = "^3.9"
 aiohttp = {version = "^3.9.3", optional = true}
@@ -20,6 +24,7 @@ async = ["aiohttp"]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.5"
+basedpyright = "^1.12.5"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.1.1"
@@ -31,14 +36,51 @@ pytest-mock = "^3.14.0"
 asyncio_mode = "auto"
 
 [tool.pyright]
-root = "./"
-venvPath = "./.venv/"
-venv = "./"
+# TODO: we'd love to enable "strict" typechecking, but 
+# pyarrow not having type stubs makes that really hard
+typeCheckingMode = "standard"
+venv = ".venv/"
 
 [tool.black]
 line-length = 120
 target-version = ['py39']
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+  "E",   # Pycodestyle
+  "F",   # Pyflakes
+  "W",   # Whitespace
+  "D",   # Pydocs
+  "T20", # Print statements
+  "I",   # isort
+]
+ignore = [
+  # Missing docstring in public module -- often docs handled within classes
+  "D100",
+  # Missing docstring in public package -- often docs handled within files not __init__.py
+  "D104",
+]
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = [
+    "A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM",
+    "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF",
+    "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"
+]
+unfixable = []
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["dbt_sl_client"]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore docs for test files
+"*_test.py" = ["D103"]
+"tests/**" = ["D103"]
+
+# Ignore prints in examples
+"examples/**" = ["T201", "D103"]
