@@ -1,11 +1,11 @@
 pre-commit:
   commands:
     ruff-format:
-      run: .venv/bin/ruff format
+      run: ruff format
     ruff-lint:
-      run: .venv/bin/ruff check --fix
+      run: ruff check --fix
     pyright:
-      run: .venv/bin/basedpyright
+      run: basedpyright
 
 commit-msg:
   template-checker:

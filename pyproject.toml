@@ -1,36 +1,40 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling~=1.24.0", "hatch-requirements-txt>=0.4.1,<0.5.0"]
+build-backend = "hatchling.build"
+
+[project]
 name = "dbt-sl-client"
 version = "0.1.0"
 description = "A client for dbt's Semantic Layer"
-authors = ["serramatutu <lucas.paes@dbtlabs.com>"]
+authors = [
+  {name = "dbt Labs"}
+]
 readme = "README.md"
+requires-python = ">=3.9"
+dynamic = ["dependencies", "optional-dependencies"]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.hatch.metadata.hooks.requirements_txt]
+files = [
+  "deps/common.txt",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-aiohttp = {version = "^3.9.3", optional = true}
-gql = "^3.5.0"
-mashumaro = "^3.12"
-typing-extensions = "^4.11.0"
-pyarrow = "^16.0.0"
-adbc-driver-flightsql = "^0.11.0"
+[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
+async = [
+  "deps/async.txt"
+]
+dev = [
+  "deps/dev.txt",
+  "deps/test.txt"
+]
 
-[tool.poetry.extras]
-async = ["aiohttp"]
-# TODO: add arrow and sync
+[tool.hatch.build.targets.sdist]
+packages = ["dbt_sl_client"]
 
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.3.5"
-basedpyright = "^1.12.5"
-
-[tool.poetry.group.test.dependencies]
-pytest = "^8.1.1"
-pytest-asyncio = "^0.23.6"
-pytest-subtests = "^0.12.1"
-pytest-mock = "^3.14.0"
+[tool.hatch.envs.dev]
+features = [
+  "async",
+  "dev"
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -43,7 +47,7 @@ venv = ".venv/"
 
 [tool.black]
 line-length = 120
-target-version = ['py39']
+target-version = ["py39"]
 
 [tool.ruff]
 line-length = 120
