@@ -2,6 +2,7 @@
 .venv/
 dist/
 .ruff_cache
+.pytest_cache
 
 # ignore gql schema files
 **/*.gql

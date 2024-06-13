@@ -3,12 +3,13 @@
 import asyncio
 from argparse import ArgumentParser
 
-from dbtsl.async_client import AsyncSemanticLayerClient
+from dbtsl.asyncio import AsyncSemanticLayerClient
 
 
 def get_arg_parser() -> ArgumentParser:
     p = ArgumentParser()
 
+    p.add_argument("metric", help="The metric to fetch")
     p.add_argument("--env-id", required=True, help="The dbt environment ID", type=int)
     p.add_argument("--token", required=True, help="The API auth token")
     p.add_argument("--host", required=True, help="The API host")
@@ -27,13 +28,13 @@ async def main() -> None:
     )
 
     async with client.session():
-        df = await client.query(
-            metrics=["customers_with_orders"],
+        table = await client.query(
+            metrics=[args.metric],
             group_by=["metric_time"],
             order_by=["metric_time"],
             limit=15,
         )
-        print(df)
+        print(table)
 
 
 if __name__ == "__main__":

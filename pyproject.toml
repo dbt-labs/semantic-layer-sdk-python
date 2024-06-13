@@ -4,14 +4,17 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dbt-sl-sdk"
-version = "0.1.0"
 description = "A client for dbt's Semantic Layer"
 authors = [
   {name = "dbt Labs"}
 ]
 readme = "README.md"
 requires-python = ">=3.9"
-dynamic = ["dependencies", "optional-dependencies"]
+dynamic = [
+  "dependencies", 
+  "version",
+  "optional-dependencies"
+]
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = [
@@ -34,6 +37,9 @@ dev-test = [
 
 [tool.hatch.build]
 packages = ["dbtsl"]
+
+[tool.hatch.version]
+path = "dbtsl/__about__.py"
 
 [tool.hatch.envs.default.scripts]
 "lock" = "bash deps/lock.sh"
