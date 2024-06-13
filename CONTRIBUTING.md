@@ -7,15 +7,7 @@ There are many ways you can contribute to this project.
 
 ## Submitting an issue
 
-If you feel like your use case hasn't been covered by the SDK, or if you found a bug, please open an issue to this repo. Try to include as much detail as possible:
-- In case it's a feature request: 
-  - What use cases would that feature cater to? 
-  - Are there any workarounds? 
-  - What would that feature look like?
-- In case it's a bug report: 
-  - How do we reproduce the bug?
-  - Do you have any logs or screenshots of the bug?
-  - What Python version and other packages do you have in your environment? What is your OS?
+If you feel like your use case hasn't been covered by the SDK, or if you found a bug or regression, please open an issue to this repo. Try to include as much detail as possible.
 
 
 ## Submitting code
