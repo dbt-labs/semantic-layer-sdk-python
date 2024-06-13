@@ -8,12 +8,20 @@
 
 INPUT_FILE=$1
 
-PATTERN="^((chore|ci|docs|feat|fix|perf|refactor|revert|test)(\(\w+\))?(!)?(: (.*\s*)*))"
+PATTERN="^((chore|ci|docs|feat|fix|perf|refactor|revert|test)(\([a-z0-9\-]+\))?(!)?(: (.*\s*)*))"
 grep -E "$PATTERN" $INPUT_FILE
 MATCH=$?
 
 if [ $MATCH -ne 0 ]; then
-  echo "Bad commit message. Must be in Conventional Commits style.\n\nSee: https://www.conventionalcommits.org/en/v1.0.0/"
+  msg=$(cat <<EOF
+Bad commit message. Must be in Conventional Commits style.
+See: https://www.conventionalcommits.org/en/v1.0.0/
+
+The commit message was not deleted. If you want to reuse it, copy the contents
+of ".git/COMMIT_MSG".
+EOF
+  )
+  echo "$msg"
   exit 1
 fi
 

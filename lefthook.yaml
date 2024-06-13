@@ -8,5 +8,6 @@ pre-commit:
       run: basedpyright
 
 commit-msg:
-  template-checker:
-    runner: bash
+  scripts:
+    "template-checker":
+      runner: bash
