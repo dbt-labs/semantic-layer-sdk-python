@@ -29,9 +29,15 @@ client = SemanticLayerClient(
     host="semantic-layer.cloud.getdbt.com",
 )
 
+# query the first metric by `metric_time`
 def main():
     with client.session():
-        print(client.metrics())
+        metrics = client.metrics()
+        table = client.query(
+            metrics=[metrics[0].name],
+            group_by=["metric_time"],
+        )
+        print(table)
 
 main()
 ```
@@ -56,9 +62,36 @@ client = AsyncSemanticLayerClient(
 
 async def main():
     async with client.session():
-        print(await client.metrics())
+        metrics = await client.metrics()
+        table = await client.query(
+            metrics=[metrics[0].name],
+            group_by=["metric_time"],
+        )
+        print(table)
 
 asyncio.run(main())
+```
+
+### Integrating with dataframe libraries
+
+By design, the SDK returns all query data as [pyarrow](https://arrow.apache.org/docs/python/index.html) tables. If you wish to use the data with libraries like [pandas](https://pandas.pydata.org/) or [polars](https://pola.rs/), you need to manually download them and convert the data into their format.
+
+If you're using pandas:
+```python
+# ... initialize client
+
+arrow_table = client.query(...)
+pandas_df = arrow_table.to_pandas()
+```
+
+If you're using polars:
+```python
+import polars as pl
+
+# ... initialize client
+
+arrow_table = client.query(...)
+polars_df = pl.from_arrow(arrow_table)
 ```
 
 ### More examples
