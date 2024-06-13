@@ -3,7 +3,7 @@ requires = ["hatchling~=1.24.0", "hatch-requirements-txt>=0.4.1,<0.5.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dbt-sl-client"
+name = "dbt-sl-sdk"
 version = "0.1.0"
 description = "A client for dbt's Semantic Layer"
 authors = [
@@ -29,8 +29,8 @@ dev-test = [
   "deps/test.txt"
 ]
 
-[tool.hatch.build.targets.sdist]
-packages = ["dbt_sl_client"]
+[tool.hatch.build]
+packages = ["dbtsl"]
 
 [tool.hatch.envs.dev]
 features = [

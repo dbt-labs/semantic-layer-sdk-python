@@ -5,9 +5,9 @@ from unittest.mock import call
 import pyarrow as pa
 from pytest_mock import MockerFixture
 
-from dbt_sl_client.api.graphql.async_client import AsyncGraphQLClient
-from dbt_sl_client.api.shared.query_params import QueryParameters
-from dbt_sl_client.models.query import QueryId, QueryResult, QueryStatus
+from dbtsl.api.graphql.async_client import AsyncGraphQLClient
+from dbtsl.api.shared.query_params import QueryParameters
+from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
 
 async def test_query_multiple_pages(mocker: MockerFixture) -> None:

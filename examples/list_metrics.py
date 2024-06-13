@@ -3,7 +3,7 @@
 import asyncio
 from argparse import ArgumentParser
 
-from dbt_sl_client.async_client import AsyncSemanticLayerClient
+from dbtsl.async_client import AsyncSemanticLayerClient
 
 
 def get_arg_parser() -> ArgumentParser:

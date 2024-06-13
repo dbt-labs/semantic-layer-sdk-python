@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, AsyncIterator, List
 
 from typing_extensions import Unpack
 
-from dbt_sl_client.api.adbc.async_client import AsyncADBCClient
-from dbt_sl_client.api.adbc.protocol import QueryParameters
-from dbt_sl_client.api.graphql.async_client import AsyncGraphQLClient
-from dbt_sl_client.models import Dimension, Measure, Metric
+from dbtsl.api.adbc.async_client import AsyncADBCClient
+from dbtsl.api.adbc.protocol import QueryParameters
+from dbtsl.api.graphql.async_client import AsyncGraphQLClient
+from dbtsl.models import Dimension, Measure, Metric
 
 if TYPE_CHECKING:
     import pyarrow as pa

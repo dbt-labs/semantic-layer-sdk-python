@@ -1,4 +1,4 @@
-from dbt_sl_client.api.adbc.protocol import ADBCProtocol
+from dbtsl.api.adbc.protocol import ADBCProtocol
 
 
 def test_serialize_query_params_simple_query() -> None:

@@ -1,6 +1,6 @@
 import json
 
-from dbt_sl_client.api.shared.query_params import QueryParameters
+from dbtsl.api.shared.query_params import QueryParameters
 
 
 class ADBCProtocol:

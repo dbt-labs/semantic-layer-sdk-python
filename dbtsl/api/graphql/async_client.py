@@ -10,21 +10,21 @@ from gql.client import AsyncClientSession
 from gql.transport.aiohttp import AIOHTTPTransport
 from typing_extensions import Unpack
 
-from dbt_sl_client.api.graphql.protocol import (
+from dbtsl.api.graphql.protocol import (
     GetQueryResultVariables,
     GraphQLProtocol,
     ProtocolOperation,
     TResponse,
     TVariables,
 )
-from dbt_sl_client.api.shared.query_params import QueryParameters
-from dbt_sl_client.error import QueryFailedError, TimeoutError
-from dbt_sl_client.models import (
+from dbtsl.api.shared.query_params import QueryParameters
+from dbtsl.error import QueryFailedError, TimeoutError
+from dbtsl.models import (
     Dimension,
     Measure,
     Metric,
 )
-from dbt_sl_client.models.query import QueryId, QueryResult, QueryStatus
+from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
 DEFAULT_URL_FORMAT = "https://{server_host}/api/graphql"
 

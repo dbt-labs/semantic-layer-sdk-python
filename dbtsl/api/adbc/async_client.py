@@ -8,7 +8,7 @@ from adbc_driver_flightsql.dbapi import Connection
 from adbc_driver_flightsql.dbapi import connect as adbc_connect
 from typing_extensions import Unpack
 
-from dbt_sl_client.api.adbc.protocol import ADBCProtocol, QueryParameters
+from dbtsl.api.adbc.protocol import ADBCProtocol, QueryParameters
 
 DEFAULT_URL_FORMAT = "grpc+tls://{server_host}:443"
 

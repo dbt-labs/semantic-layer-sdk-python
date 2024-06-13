@@ -4,9 +4,9 @@ from typing import Any, Dict, Generic, List, Mapping, TypedDict, TypeVar
 from mashumaro.codecs.basic import decode as decode_to_dataclass
 from typing_extensions import NotRequired, override
 
-from dbt_sl_client.api.shared.query_params import QueryParameters
-from dbt_sl_client.models import Dimension, Measure, Metric
-from dbt_sl_client.models.query import QueryId, QueryResult
+from dbtsl.api.shared.query_params import QueryParameters
+from dbtsl.models import Dimension, Measure, Metric
+from dbtsl.models.query import QueryId, QueryResult
 
 TVariables = TypeVar("TVariables", bound=Mapping[str, Any])
 TResponse = TypeVar("TResponse")

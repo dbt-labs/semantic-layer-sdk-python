@@ -1,7 +1,7 @@
 from pytest_subtests import SubTests
 
-from dbt_sl_client.api.graphql.protocol import GraphQLProtocol
-from dbt_sl_client.models.metric import Metric, MetricType
+from dbtsl.api.graphql.protocol import GraphQLProtocol
+from dbtsl.models.metric import Metric, MetricType
 
 from ...conftest import QueryValidator
 
