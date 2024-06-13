@@ -4,34 +4,16 @@ adbc-driver-flightsql==1.0.0
     # via -r deps/common.in
 adbc-driver-manager==1.0.0
     # via adbc-driver-flightsql
-anyio==4.4.0
-    # via gql
-backoff==2.2.1
-    # via gql
-gql==3.5.0
-    # via -r deps/common.in
-graphql-core==3.2.3
-    # via gql
-idna==3.7
-    # via
-    #   anyio
-    #   yarl
 importlib-resources==6.4.0
     # via adbc-driver-flightsql
 mashumaro==3.13
     # via -r deps/common.in
-multidict==6.0.5
-    # via yarl
 numpy==1.26.4
     # via pyarrow
 pyarrow==16.1.0
     # via -r deps/common.in
-sniffio==1.3.1
-    # via anyio
 typing-extensions==4.12.2
     # via
     #   -r deps/common.in
     #   adbc-driver-manager
     #   mashumaro
-yarl==1.9.4
-    # via gql

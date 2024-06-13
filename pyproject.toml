@@ -22,6 +22,9 @@ files = [
 async = [
   "deps/async.txt"
 ]
+sync = [
+  "deps/sync.txt"
+]
 dev-main = [
   "deps/dev.txt",
 ]
@@ -32,11 +35,19 @@ dev-test = [
 [tool.hatch.build]
 packages = ["dbtsl"]
 
+[tool.hatch.envs.default.scripts]
+"lock" = "bash deps/lock.sh"
+
 [tool.hatch.envs.dev]
 features = [
   "async",
-  "dev-main"
+  "sync",
+  "dev-main",
+  "dev-test"
 ]
+
+[tool.hatch.envs.dev.scripts]
+fetch-schema = "python tests/fetch_schema.py > tests/server_schema.gql"
 
 [tool.hatch.envs.test]
 features = [
