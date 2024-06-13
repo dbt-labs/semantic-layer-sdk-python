@@ -1,11 +1,11 @@
 pre-commit:
   commands:
     ruff-format:
-      run: ruff format
+      run: "hatch run dev:ruff format"
     ruff-lint:
-      run: ruff check --fix
+      run: "hatch run dev:ruff check --fix"
     pyright:
-      run: basedpyright
+      run: "hatch run dev:basedpyright"
 
 commit-msg:
   scripts:
