@@ -22,8 +22,10 @@ files = [
 async = [
   "deps/async.txt"
 ]
-dev = [
+dev-main = [
   "deps/dev.txt",
+]
+dev-test = [
   "deps/test.txt"
 ]
 
@@ -33,8 +35,20 @@ packages = ["dbt_sl_client"]
 [tool.hatch.envs.dev]
 features = [
   "async",
-  "dev"
+  "dev-main"
 ]
+
+[tool.hatch.envs.test]
+features = [
+  "async",
+  "dev-test"
+]
+
+[tool.hatch.envs.test.scripts]
+run = "pytest --server-schema tests/server_schema.gql"
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

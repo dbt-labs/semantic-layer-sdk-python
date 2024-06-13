@@ -2,3 +2,6 @@
 .venv/
 dist/
 .ruff_cache
+
+# ignore gql schema files
+**/*.gql
