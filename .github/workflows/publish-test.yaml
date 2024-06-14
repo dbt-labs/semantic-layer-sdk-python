@@ -1,8 +1,6 @@
-name: Publish SDK to PyPI
+name: Publish SDK to test PyPI
 on:
-  push:
-    tags:
-      - "*"
+  workflow_dispatch:
 
 env:
   PYTHON_VERSION: "3.12"
@@ -11,8 +9,8 @@ jobs:
   pypi-publish:
     runs-on: ubuntu-latest
     environment: 
-      name: release
-      url: "https://pypi.org/project/dbt-sl-sdk/"
+      name: release-test
+      url: "https://test.pypi.org/project/dbt-sl-sdk/"
     permissions:
       id-token: write
 
@@ -30,4 +28,6 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: "https://test.pypi.org/legacy/"
 
