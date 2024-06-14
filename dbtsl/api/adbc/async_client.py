@@ -8,9 +8,8 @@ from adbc_driver_flightsql.dbapi import Connection
 from adbc_driver_flightsql.dbapi import connect as adbc_connect
 from typing_extensions import Unpack
 
+import dbtsl.env as env
 from dbtsl.api.adbc.protocol import ADBCProtocol, QueryParameters
-
-DEFAULT_URL_FORMAT = "grpc+tls://{server_host}:443"
 
 
 class AsyncADBCClient:
@@ -38,7 +37,7 @@ class AsyncADBCClient:
 
         self._loop = asyncio.get_running_loop()
 
-        url_format = url_format or DEFAULT_URL_FORMAT
+        url_format = url_format or env.DEFAULT_ADBC_URL_FORMAT
         self._conn_str = url_format.format(server_host=server_host)
         self._environment_id = environment_id
         self._auth_token = auth_token

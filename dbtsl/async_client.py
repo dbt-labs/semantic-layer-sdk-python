@@ -1,10 +1,10 @@
-import os
 from abc import ABC
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, AsyncIterator, List
+from typing import TYPE_CHECKING, Any, AsyncIterator, List
 
 from typing_extensions import Unpack
 
+import dbtsl.env as env
 from dbtsl.api.adbc.async_client import AsyncADBCClient
 from dbtsl.api.adbc.protocol import QueryParameters
 from dbtsl.api.graphql.async_client import AsyncGraphQLClient
@@ -12,9 +12,6 @@ from dbtsl.models import Dimension, Measure, Metric
 
 if TYPE_CHECKING:
     import pyarrow as pa
-
-GRAPHQL_URL_FORMAT_OVERRIDE = os.environ.get("DBT_SL_GQL_URL_FORMAT", None)
-ARROW_URL_FORMAT_OVERRIDE = os.environ.get("DBT_SL_ARROW_URL_FORMAT", None)
 
 
 class AsyncSemanticLayerClient(ABC):
@@ -47,13 +44,13 @@ class AsyncSemanticLayerClient(ABC):
             server_host=host,
             environment_id=environment_id,
             auth_token=auth_token,
-            url_format=GRAPHQL_URL_FORMAT_OVERRIDE,
+            url_format=env.GRAPHQL_URL_FORMAT,
         )
         self._adbc = AsyncADBCClient(
             server_host=host,
             environment_id=environment_id,
             auth_token=auth_token,
-            url_format=ARROW_URL_FORMAT_OVERRIDE,
+            url_format=env.ADBC_URL_FORMAT,
         )
 
     def _assert_session(self) -> None:
@@ -70,6 +67,16 @@ class AsyncSemanticLayerClient(ABC):
             self._has_session = True
             yield self
             self._has_session = False
+
+    def __getattribute__(self, attr: str) -> Any:
+        """Get methods from the underlying APIs.
+
+        `query` goes through ADBC, while the rest goes through GQL.
+        """
+        if attr == "query":
+            return self._adbc.query
+
+        return getattr(self._gql, attr)
 
     async def query(self, **query_params: Unpack[QueryParameters]) -> "pa.Table":
         """Query the Semantic Layer for a metric data."""

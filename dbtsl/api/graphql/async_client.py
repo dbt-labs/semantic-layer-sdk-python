@@ -10,6 +10,7 @@ from gql.client import AsyncClientSession
 from gql.transport.aiohttp import AIOHTTPTransport
 from typing_extensions import Unpack
 
+import dbtsl.env as env
 from dbtsl.api.graphql.protocol import (
     GetQueryResultVariables,
     GraphQLProtocol,
@@ -25,8 +26,6 @@ from dbtsl.models import (
     Metric,
 )
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
-
-DEFAULT_URL_FORMAT = "https://{server_host}/api/graphql"
 
 
 class AsyncGraphQLClient:
@@ -51,7 +50,7 @@ class AsyncGraphQLClient:
         """
         self.environment_id = environment_id
 
-        url_format = url_format or DEFAULT_URL_FORMAT
+        url_format = url_format or env.DEFAULT_GRAPHQL_URL_FORMAT
         server_url = url_format.format(server_host=server_host)
 
         transport = AIOHTTPTransport(url=server_url, headers={"Authorization": f"Bearer {auth_token}"})
