@@ -1,0 +1,45 @@
+name: Setup Python environment 
+description: Install Python & Hatch
+
+inputs:
+  python-version:
+    description: "Version of Python to use"
+    required: false
+    default: "3.12"
+
+runs:
+  using: "composite"
+
+  steps:
+  - name: Set Linux release environment variable
+    shell: bash
+    run: echo "LINUX_RELEASE=$(lsb_release -rs)" >> $GITHUB_ENV
+
+  - name: Set up Python ${{ inputs.python_version }}
+    uses: actions/setup-python@v5
+    with:
+      python-version: "${{ inputs.python-version }}"
+
+  # Cache the dependencies installed by Hatch so that we don't need to reinstall them on every run.
+  - uses: actions/cache@v4
+    with:
+      # Save pip cache.
+      # Save Hatch environments.
+      # Save the package cache for Hatch.
+      # Save pre-commit environments.
+      path: |
+        ${{ env.pythonLocation }}
+        ~/.cache/pip
+        ~/.local/share/hatch
+        ~/.cache/hatch
+      # >- means combine all lines to a single line
+      # The cache key can be any string. The format used here is just for readability.
+      key: >-
+        python_location: "${{ env.pythonLocation }}" AND
+        pyproject_hash: "${{ hashFiles('pyproject.toml') }}" AND
+        precommit_config_hash: "${{ hashFiles('.pre-commit-config.yaml') }}" AND
+        linux_release: "${{ env.LINUX_RELEASE }}"
+
+  - name: Install Hatch
+    shell: bash
+    run: pip3 install hatch
