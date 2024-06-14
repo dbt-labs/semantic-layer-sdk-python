@@ -8,3 +8,7 @@ class TimeoutError(SemanticLayerError):
 
 class QueryFailedError(SemanticLayerError):
     """Raise whenever a query has failed."""
+
+
+class AuthError(SemanticLayerError):
+    """Raise whenever there was a problem authenticating to the API."""

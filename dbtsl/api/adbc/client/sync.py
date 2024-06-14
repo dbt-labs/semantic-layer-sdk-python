@@ -1,11 +1,13 @@
 from contextlib import contextmanager
 from typing import Iterator, Optional
 
+from adbc_driver_manager import ProgrammingError, AdbcStatusCode
 import pyarrow as pa
 from typing_extensions import Self, Unpack
 
 from dbtsl.api.adbc.client.base import BaseADBCClient
 from dbtsl.api.adbc.protocol import ADBCProtocol, QueryParameters
+from dbtsl.error import AuthError
 
 
 class SyncADBCClient(BaseADBCClient):
@@ -51,7 +53,11 @@ class SyncADBCClient(BaseADBCClient):
         query_sql = ADBCProtocol.get_query_sql(query_params)
 
         with self._conn.cursor() as cur:
-            cur.execute(query_sql)
+            try:
+                cur.execute(query_sql)
+            except Exception as err:
+                self._handle_error(err)
+
             table = cur.fetch_arrow_table()
 
         return table

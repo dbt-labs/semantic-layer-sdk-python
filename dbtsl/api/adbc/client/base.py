@@ -2,11 +2,13 @@ from abc import abstractmethod
 from contextlib import AbstractContextManager
 from typing import Generic, Optional, Protocol, TypeVar, Union
 
+from adbc_driver_manager import AdbcStatusCode, ProgrammingError
 from adbc_driver_flightsql import DatabaseOptions
 from adbc_driver_flightsql.dbapi import Connection
 from adbc_driver_flightsql.dbapi import connect as adbc_connect
 
 import dbtsl.env as env
+from dbtsl.error import AuthError, QueryFailedError
 
 
 class BaseADBCClient:
@@ -35,6 +37,21 @@ class BaseADBCClient:
                 DatabaseOptions.WITH_COOKIE_MIDDLEWARE.value: "true",
             },
         )
+
+    def _handle_error(self, err: Exception) -> None:
+        if isinstance(err, ProgrammingError):
+            if err.status_code in (AdbcStatusCode.UNAUTHENTICATED, AdbcStatusCode.UNAUTHORIZED):
+                raise AuthError(err.args)
+
+            if err.status_code == AdbcStatusCode.INVALID_ARGUMENT:
+                raise QueryFailedError(err.args)
+
+            # TODO: timeouts are not implemented for ADBC
+            # See: https://arrow.apache.org/adbc/current/driver/flight_sql.html#timeouts
+            if err.status_code == AdbcStatusCode.TIMEOUT:
+                raise TimeoutError()
+
+        raise err
 
     @property
     def _conn(self) -> Connection:

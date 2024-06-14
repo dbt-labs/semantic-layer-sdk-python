@@ -5,6 +5,7 @@ from typing import Any, Dict, Generic, Optional, Protocol, TypeVar, Union
 from gql import Client
 from gql.client import AsyncClientSession, SyncClientSession
 from gql.transport import AsyncTransport, Transport
+from gql.transport.exceptions import TransportQueryError
 
 import dbtsl.env as env
 from dbtsl.api.graphql.protocol import (
@@ -14,6 +15,7 @@ from dbtsl.api.graphql.protocol import (
     TVariables,
 )
 from dbtsl.backoff import ExponentialBackoff
+from dbtsl.error import AuthError
 
 TTransport = TypeVar("TTransport", Transport, AsyncTransport)
 TSession = TypeVar("TSession", SyncClientSession, AsyncClientSession)
@@ -61,6 +63,17 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
     def _run(self, op: ProtocolOperation[TVariables, TResponse], **kwargs: TVariables) -> TResponse:
         raise NotImplementedError()
 
+    def _run_err_wrapper(self, op: ProtocolOperation[TVariables, TResponse], **kwargs: TVariables) -> TResponse:
+        try:
+            return self._run(op, **kwargs)
+        except TransportQueryError as err:
+            # TODO: we should probably return an error type that has an Enum from GraphQL
+            # instead of depending on error messages
+            if err.errors is not None and err.errors[0]["message"] == "User is not authorized":
+                raise AuthError(err.args)
+
+            raise err
+
     @property
     def _gql_session(self) -> TSession:
         """Safe accessor to `_gql_session_unsafe`.
@@ -79,7 +92,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
             raise AttributeError()
 
         return functools.partial(
-            self._run,
+            self._run_err_wrapper,
             op=op,
         )
 
