@@ -1,6 +1,4 @@
 import asyncio
-import itertools
-import time
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, List, Optional, Union
 
@@ -19,7 +17,8 @@ from dbtsl.api.graphql.protocol import (
     TVariables,
 )
 from dbtsl.api.shared.query_params import QueryParameters
-from dbtsl.error import QueryFailedError, TimeoutError
+from dbtsl.backoff import ExponentialBackoff
+from dbtsl.error import QueryFailedError
 from dbtsl.models import (
     Dimension,
     Measure,
@@ -30,6 +29,15 @@ from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
 class AsyncGraphQLClient:
     """An asyncio client to access semantic layer via GraphQL."""
+
+    @classmethod
+    def _default_backoff(cls) -> ExponentialBackoff:
+        """Get the default backoff behavior when polling."""
+        return ExponentialBackoff(
+            base_interval_ms=500,
+            max_interval_ms=60000,
+            timeout_ms=90000,
+        )
 
     def __init__(
         self,
@@ -120,30 +128,24 @@ class AsyncGraphQLClient:
     async def _poll_until_complete(
         self,
         query_id: QueryId,
-        timeout_ms: int = 60000,
+        backoff: Optional[ExponentialBackoff] = None,
     ) -> QueryResult:
         """Poll for a query's results until it is in a completed state (SUCCESSFUL or FAILED).
 
         Note that this function does NOT fetch all pages in case the query is SUCCESSFUL. It only
         returns once the query is done. Callers must implement this logic themselves.
         """
-        base_interval_ms = 500
-        start_ms = int(time.time() * 1000)
-        for i in itertools.count(start=0):
+        if backoff is None:
+            backoff = self._default_backoff()
+
+        for sleep_ms in backoff.iter_ms():
             # TODO: add timeout param to all requests because technically the API could hang and
             # then we don't respect timeout.
             qr = await self._get_query_result(query_id=query_id, page_num=1)
             if qr.status in (QueryStatus.SUCCESSFUL, QueryStatus.FAILED):
                 return qr
 
-            curr_ms = int(time.time() * 1000)
-            elapsed_ms = curr_ms - start_ms
-            if elapsed_ms > timeout_ms:
-                raise TimeoutError()
-
-            # Exponential backoff with upper bound of a minute
-            interval_ms = min(base_interval_ms * 1.15**i, 60000)
-            await asyncio.sleep(interval_ms / 1000)
+            await asyncio.sleep(sleep_ms / 1000)
 
         # This should be unreachable
         raise ValueError()
