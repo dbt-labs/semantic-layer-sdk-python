@@ -33,7 +33,7 @@ def test_metrics_parses_server_respose() -> None:
             {"name": "B", "description": "b", "type": "RATIO"},
         ]
     }
-    parsed = GraphQLProtocol.list_metrics.parse_response(raw)
+    parsed = GraphQLProtocol.metrics.parse_response(raw)
     assert parsed == [
         Metric(name="A", description="a", type=MetricType.CUMULATIVE),
         Metric(name="B", description="b", type=MetricType.RATIO),

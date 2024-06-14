@@ -1,18 +1,15 @@
 import asyncio
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Optional, Union
+from typing import AsyncIterator, Optional
 
 import pyarrow as pa
-from adbc_driver_flightsql import DatabaseOptions
-from adbc_driver_flightsql.dbapi import Connection
-from adbc_driver_flightsql.dbapi import connect as adbc_connect
-from typing_extensions import Unpack
+from typing_extensions import Self, Unpack
 
-import dbtsl.env as env
+from dbtsl.api.adbc.client.base import BaseADBCClient
 from dbtsl.api.adbc.protocol import ADBCProtocol, QueryParameters
 
 
-class AsyncADBCClient:
+class AsyncADBCClient(BaseADBCClient):
     """An asyncio client to access the Semantic Layer via ADBC."""
 
     def __init__(
@@ -33,28 +30,11 @@ class AsyncADBCClient:
                 `grpc+tls://{server_host}:443`
                 will be assumed.
         """
-        self._conn_unsafe: Union[Connection, None] = None
-
+        super().__init__(server_host, environment_id, auth_token, url_format)
         self._loop = asyncio.get_running_loop()
 
-        url_format = url_format or env.DEFAULT_ADBC_URL_FORMAT
-        self._conn_str = url_format.format(server_host=server_host)
-        self._environment_id = environment_id
-        self._auth_token = auth_token
-
-    @property
-    def _conn(self) -> Connection:
-        """Safe accessor to `_conn_unsafe`.
-
-        Raises if it is None and return the value if it is not None.
-        """
-        if self._conn_unsafe is None:
-            raise ValueError("Cannot perform operation without opening a session first.")
-
-        return self._conn_unsafe
-
     @asynccontextmanager
-    async def session(self) -> AsyncIterator["AsyncADBCClient"]:
+    async def session(self) -> AsyncIterator[Self]:
         """Open a connection in the underlying ADBC driver.
 
         All requests made during the same session will reuse the same connection.
@@ -62,14 +42,7 @@ class AsyncADBCClient:
         if self._conn_unsafe is not None:
             raise ValueError("A client session is already open.")
 
-        ctx = adbc_connect(
-            self._conn_str,
-            db_kwargs={
-                DatabaseOptions.AUTHORIZATION_HEADER.value: f"Bearer {self._auth_token}",
-                f"{DatabaseOptions.RPC_CALL_HEADER_PREFIX.value}environmentid": str(self._environment_id),
-                DatabaseOptions.WITH_COOKIE_MIDDLEWARE.value: "true",
-            },
-        )
+        ctx = self._get_connection_context_manager()
         self._conn_unsafe = await self._loop.run_in_executor(None, ctx.__enter__)
 
         yield self
