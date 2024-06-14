@@ -211,8 +211,8 @@ class GraphQLProtocol:
     GraphQL logic.
     """
 
-    list_metrics = ListMetricsOperation()
-    list_dimensions = ListDimensionsOperation()
-    list_measures = ListMeasuresOperation()
+    metrics = ListMetricsOperation()
+    measures = ListDimensionsOperation()
+    measures = ListMeasuresOperation()
     create_query = CreateQueryOperation()
     get_query_result = GetQueryResultOperation()

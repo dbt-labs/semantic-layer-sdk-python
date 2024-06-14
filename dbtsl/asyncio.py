@@ -1,4 +1,4 @@
-from dbtsl.async_client import AsyncSemanticLayerClient
+from dbtsl.client.asyncio import AsyncSemanticLayerClient
 
 __all__ = [
     "AsyncSemanticLayerClient",

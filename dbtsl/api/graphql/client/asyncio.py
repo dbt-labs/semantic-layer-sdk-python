@@ -1,15 +1,14 @@
 import asyncio
-import itertools
-import time
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, List, Optional, Union
+from typing import AsyncIterator, Dict, Optional
 
 import pyarrow as pa
-from gql import Client, gql
+from gql import gql
 from gql.client import AsyncClientSession
 from gql.transport.aiohttp import AIOHTTPTransport
-from typing_extensions import Unpack
+from typing_extensions import Self, Unpack, override
 
+from dbtsl.api.graphql.client.base import BaseGraphQLClient
 from dbtsl.api.graphql.protocol import (
     GetQueryResultVariables,
     GraphQLProtocol,
@@ -18,19 +17,13 @@ from dbtsl.api.graphql.protocol import (
     TVariables,
 )
 from dbtsl.api.shared.query_params import QueryParameters
-from dbtsl.error import QueryFailedError, TimeoutError
-from dbtsl.models import (
-    Dimension,
-    Measure,
-    Metric,
-)
+from dbtsl.backoff import ExponentialBackoff
+from dbtsl.error import QueryFailedError
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
-DEFAULT_URL_FORMAT = "https://{server_host}/api/graphql"
 
-
-class AsyncGraphQLClient:
-    """An asyncio client to access semantic layer via GraphQL."""
+class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]):
+    """An asyncio client to access semantic layer via GraphQL, backed by aiohttp."""
 
     def __init__(
         self,
@@ -49,29 +42,14 @@ class AsyncGraphQLClient:
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
         """
-        self.environment_id = environment_id
+        super().__init__(server_host, environment_id, auth_token, url_format)
 
-        url_format = url_format or DEFAULT_URL_FORMAT
-        server_url = url_format.format(server_host=server_host)
-
-        transport = AIOHTTPTransport(url=server_url, headers={"Authorization": f"Bearer {auth_token}"})
-        self._gql = Client(transport=transport)
-
-        self._gql_session_unsafe: Union[AsyncClientSession, None] = None
-
-    @property
-    def _gql_session(self) -> AsyncClientSession:
-        """Safe accessor to `_gql_session_unsafe`.
-
-        Raises if it is None and return the value if it is not None.
-        """
-        if self._gql_session_unsafe is None:
-            raise ValueError("Cannot perform operation without opening a session first.")
-
-        return self._gql_session_unsafe
+    @override
+    def _create_transport(self, url: str, headers: Dict[str, str]) -> AIOHTTPTransport:
+        return AIOHTTPTransport(url=url, headers=headers)
 
     @asynccontextmanager
-    async def session(self) -> AsyncIterator["AsyncGraphQLClient"]:
+    async def session(self) -> AsyncIterator[Self]:
         """Open a session in the underlying aiohttp transport.
 
         A "session" is a TCP connection with the server. All operations
@@ -81,6 +59,7 @@ class AsyncGraphQLClient:
             raise ValueError("A client session is already open.")
 
         async with self._gql as session:
+            assert isinstance(session, AsyncClientSession)
             self._gql_session_unsafe = session
             yield self
             self._gql_session_unsafe = None
@@ -95,21 +74,6 @@ class AsyncGraphQLClient:
 
         return op.parse_response(res)
 
-    # NOTE: Here comes a bunch of boilerplate just so PyRight is happy :D
-    # We could generate these methods at runtime but then all the static
-    # checkers would be confused and it would result in horrible UX.
-    async def metrics(self) -> List[Metric]:
-        """Get a list of all available metrics."""
-        return await self._run(GraphQLProtocol.list_metrics)
-
-    async def dimensions(self, metrics: List[str]) -> List[Dimension]:
-        """Get a list of all available dimensions for a given metric."""
-        return await self._run(GraphQLProtocol.list_dimensions, metrics=metrics)  # type: ignore
-
-    async def measures(self, metrics: List[str]) -> List[Measure]:
-        """Get a list of all available measures for a given metric."""
-        return await self._run(GraphQLProtocol.list_measures, metrics=metrics)  # type: ignore
-
     async def _create_query(self, **params: Unpack[QueryParameters]) -> QueryId:
         """Create a query that will run asynchronously."""
         return await self._run(GraphQLProtocol.create_query, **params)  # type: ignore
@@ -121,30 +85,24 @@ class AsyncGraphQLClient:
     async def _poll_until_complete(
         self,
         query_id: QueryId,
-        timeout_ms: int = 60000,
+        backoff: Optional[ExponentialBackoff] = None,
     ) -> QueryResult:
         """Poll for a query's results until it is in a completed state (SUCCESSFUL or FAILED).
 
         Note that this function does NOT fetch all pages in case the query is SUCCESSFUL. It only
         returns once the query is done. Callers must implement this logic themselves.
         """
-        base_interval_ms = 500
-        start_ms = int(time.time() * 1000)
-        for i in itertools.count(start=0):
+        if backoff is None:
+            backoff = self._default_backoff()
+
+        for sleep_ms in backoff.iter_ms():
             # TODO: add timeout param to all requests because technically the API could hang and
             # then we don't respect timeout.
             qr = await self._get_query_result(query_id=query_id, page_num=1)
             if qr.status in (QueryStatus.SUCCESSFUL, QueryStatus.FAILED):
                 return qr
 
-            curr_ms = int(time.time() * 1000)
-            elapsed_ms = curr_ms - start_ms
-            if elapsed_ms > timeout_ms:
-                raise TimeoutError()
-
-            # Exponential backoff with upper bound of a minute
-            interval_ms = min(base_interval_ms * 1.15**i, 60000)
-            await asyncio.sleep(interval_ms / 1000)
+            await asyncio.sleep(sleep_ms / 1000)
 
         # This should be unreachable
         raise ValueError()

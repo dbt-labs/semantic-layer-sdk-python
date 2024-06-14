@@ -1,9 +1,8 @@
 """Fetch all available metrics from the metadata API and display them."""
 
-import asyncio
 from argparse import ArgumentParser
 
-from dbtsl.asyncio import AsyncSemanticLayerClient
+from dbtsl import SemanticLayerClient
 
 
 def get_arg_parser() -> ArgumentParser:
@@ -16,18 +15,18 @@ def get_arg_parser() -> ArgumentParser:
     return p
 
 
-async def main() -> None:
+def main() -> None:
     arg_parser = get_arg_parser()
     args = arg_parser.parse_args()
 
-    client = AsyncSemanticLayerClient(
+    client = SemanticLayerClient(
         environment_id=args.env_id,
         auth_token=args.token,
         host=args.host,
     )
 
-    async with client.session():
-        metrics = await client.metrics()
+    with client.session():
+        metrics = client.metrics()
         for m in metrics:
             print(f"📈 {m.name}")
             print(f"     type={m.type}")
@@ -35,4 +34,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

@@ -5,7 +5,7 @@ from unittest.mock import call
 import pyarrow as pa
 from pytest_mock import MockerFixture
 
-from dbtsl.api.graphql.async_client import AsyncGraphQLClient
+from dbtsl.api.graphql.client.asyncio import AsyncGraphQLClient
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
