@@ -2,10 +2,10 @@ from abc import abstractmethod
 from contextlib import AbstractContextManager
 from typing import Generic, Optional, Protocol, TypeVar, Union
 
-from adbc_driver_manager import AdbcStatusCode, ProgrammingError
 from adbc_driver_flightsql import DatabaseOptions
 from adbc_driver_flightsql.dbapi import Connection
 from adbc_driver_flightsql.dbapi import connect as adbc_connect
+from adbc_driver_manager import AdbcStatusCode, ProgrammingError
 
 import dbtsl.env as env
 from dbtsl.error import AuthError, QueryFailedError

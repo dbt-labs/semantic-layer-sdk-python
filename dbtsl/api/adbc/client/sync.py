@@ -1,13 +1,11 @@
 from contextlib import contextmanager
 from typing import Iterator, Optional
 
-from adbc_driver_manager import ProgrammingError, AdbcStatusCode
 import pyarrow as pa
 from typing_extensions import Self, Unpack
 
 from dbtsl.api.adbc.client.base import BaseADBCClient
 from dbtsl.api.adbc.protocol import ADBCProtocol, QueryParameters
-from dbtsl.error import AuthError
 
 
 class SyncADBCClient(BaseADBCClient):

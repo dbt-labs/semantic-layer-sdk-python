@@ -44,6 +44,16 @@ path = "dbtsl/__about__.py"
 [tool.hatch.envs.default.scripts]
 "lock" = "bash deps/lock.sh"
 
+[tool.hatch.envs.sync]
+features = [
+  "sync",
+]
+
+[tool.hatch.envs.async]
+features = [
+  "async",
+]
+
 [tool.hatch.envs.dev]
 features = [
   "async",

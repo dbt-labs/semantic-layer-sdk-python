@@ -50,7 +50,7 @@ class AsyncADBCClient(BaseADBCClient):
         await self._loop.run_in_executor(None, ctx.__exit__, None, None, None)
         self._conn_unsafe = None
 
-    async def query(self,**query_params: Unpack[QueryParameters]) -> pa.Table:
+    async def query(self, **query_params: Unpack[QueryParameters]) -> pa.Table:
         """Query for a dataframe in the Semantic Layer."""
         query_sql = ADBCProtocol.get_query_sql(query_params)
 
