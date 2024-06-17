@@ -8,6 +8,7 @@ HOST = os.environ.get("SL_HOST", "semantic-layer.cloud.getdbt.com")
 
 
 def main():
+    """Fetch the GraphQL schema from the Semantic Layer servers."""
     transport = RequestsHTTPTransport(url=f"https://{HOST}/api/graphql", verify=True)
     client = Client(transport=transport)
 

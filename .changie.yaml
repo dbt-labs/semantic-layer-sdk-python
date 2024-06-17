@@ -21,6 +21,8 @@ kinds:
     auto: patch
   - label: Chore
     auto: none
+  - label: Test
+    auto: none
 newlines:
   afterChangelogHeader: 1
   beforeChangelogVersion: 1
