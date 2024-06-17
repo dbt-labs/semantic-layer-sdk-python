@@ -8,12 +8,17 @@ kindFormat: '### {{.Kind}}'
 changeFormat: '* {{.Body}}'
 kinds:
   - label: Breaking Changes
+    auto: major
   - label: Features
+    auto: minor
   - label: Fixes
+    auto: patch
   - label: Docs
+    auto: none
   - label: Under the Hood
   - label: Dependencies
   - label: Security
+    auto: patch
 newlines:
   afterChangelogHeader: 1
   beforeChangelogVersion: 1

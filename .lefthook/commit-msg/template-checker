@@ -8,7 +8,7 @@
 
 INPUT_FILE=$1
 
-PATTERN="^((chore|ci|docs|feat|fix|perf|refactor|revert|test)(\([a-z0-9\-]+\))?(!)?(: (.*\s*)*))"
+PATTERN="^((chore|ci|docs|feat|fix|perf|refactor|revert|test|version)(\([a-z0-9\-]+\))?(!)?(: (.*\s*)*))"
 grep -E "$PATTERN" $INPUT_FILE
 MATCH=$?
 
