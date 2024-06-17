@@ -15,11 +15,19 @@ jobs:
       - name: Setup Python ${{ env.PYTHON_VERSION }} environment
         uses: ./.github/actions/setup-python-env
 
-      - name: Check for new changie entry
+      - name: Check for changes
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E "\.changes/.*\.md")
-          if [ "$CHANGES" == "" ]; then
+          ALL_CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+
+          CHANGIE=$(echo "$ALL_CHANGES" | grep -E "\.changes/.*\.md")
+          if [ "$CHANGIE" == "" ]; then
             echo "No files added to `.changes/`. Make sure you run `changie new`."
+            exit 1
+          fi
+
+          CHANGELOG=$(echo "$ALL_CHANGES" | grep "CHANGELOG.md")
+          if [ "$CHANGELOG" != "" ]; then
+            echo "Don't edit 'CHANGELOG.md' manually nor run `changie merge`."
             exit 1
           fi
 

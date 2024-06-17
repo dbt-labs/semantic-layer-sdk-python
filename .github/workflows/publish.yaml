@@ -2,10 +2,7 @@ name: Publish SDK to PyPI
 on:
   push:
     tags:
-      - "*"
-
-env:
-  PYTHON_VERSION: "3.12"
+      - "v*"
 
 jobs:
   pypi-publish:
@@ -19,10 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python ${{ env.PYTHON_VERSION }} environment
-        uses: ./.github/actions/setup-python-env
-        with:
-          python-version: "${{ env.PYTHON_VERSION }}"
+      - uses: ./.github/actions/setup-python-env
 
       - name: Build package
         run: hatch build

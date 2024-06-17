@@ -19,6 +19,8 @@ kinds:
   - label: Dependencies
   - label: Security
     auto: patch
+  - label: Chore
+    auto: none
 newlines:
   afterChangelogHeader: 1
   beforeChangelogVersion: 1

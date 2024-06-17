@@ -2,9 +2,6 @@ name: Publish SDK to test PyPI
 on:
   workflow_dispatch:
 
-env:
-  PYTHON_VERSION: "3.12"
-
 jobs:
   pypi-publish:
     runs-on: ubuntu-latest
