@@ -42,7 +42,8 @@ packages = ["dbtsl"]
 path = "dbtsl/__about__.py"
 
 [tool.hatch.envs.default.scripts]
-"lock" = "bash deps/lock.sh"
+"lock" = "bash scripts/lock-deps.sh"
+"bump-version" = "bash scripts/bump-version.sh"
 
 [tool.hatch.envs.sync]
 features = [
@@ -62,7 +63,7 @@ features = [
   "dev-test"
 ]
 [tool.hatch.envs.dev.scripts]
-fetch-schema = "python tests/fetch_schema.py > tests/server_schema.gql"
+fetch-schema = "python scripts/fetch_schema.py > tests/server_schema.gql"
 
 [tool.hatch.envs.test]
 features = [
