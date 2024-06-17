@@ -1,0 +1,24 @@
+name: Code quality
+on:
+  pull_request:
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-python-env
+
+      - name: ruff
+        run: "hatch run dev:ruff format --check"
+
+      - name: basedpyright
+        run: "hatch run dev:basedpyright"
+
+      - name: fetch server schema
+        run: "hatch run dev:fetch-schema"
+
+      - name: basedpyright
+        run: "hatch run test:run"
+
