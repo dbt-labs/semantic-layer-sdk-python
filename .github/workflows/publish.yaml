@@ -1,5 +1,6 @@
 name: Publish SDK to PyPI
 on:
+  workflow_dispatch:
   push:
     tags:
       - "*"
