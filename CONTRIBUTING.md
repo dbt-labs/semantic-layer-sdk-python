@@ -20,7 +20,13 @@ If you want to contribute by submitting code, this section will explain how to s
 1. We use [hatch](https://hatch.pypa.io/) as the dependency and environment manager. Make sure you install it via one of the methods described [here](https://hatch.pypa.io/latest/install/). 
 2. We use [lefthook](https://github.com/evilmartians/lefthook/) for Git hooks management. The first time you clone the repo, run `lefthook install` to setup the git hooks.
 
-Hatch will manage your environments for you. Check out the list of available environments in [`pyproject.toml`](./pyproject.toml). You probably want to use the `dev` environment by running `hatch shell dev`.
+Hatch will manage your environments for you. Check out the list of available environments in [`pyproject.toml`](./pyproject.toml). Here follows a brief explanation of what they are for:
+- `default`: run only basic scripts, no dependencies installed
+- `test`: SDK and test dependencies installed
+- `pypi-test-*`: install the SDK from `https://test.pypi.org/simple/` to make sure our build and publish pipelines work before actually publishing the real package
+- `dev`: install SDK dependencies and other tools needed during dev such as `ruff` and `basedpyright`.
+
+For most use cases, you probably want to use the `dev` environment by running `hatch shell dev`.
 
 
 ### Upgrading dependencies
