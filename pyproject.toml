@@ -61,7 +61,6 @@ features = [
   "dev-main",
   "dev-test"
 ]
-
 [tool.hatch.envs.dev.scripts]
 fetch-schema = "python tests/fetch_schema.py > tests/server_schema.gql"
 
@@ -70,12 +69,26 @@ features = [
   "async",
   "dev-test"
 ]
-
 [tool.hatch.envs.test.scripts]
 run = "pytest --server-schema tests/server_schema.gql"
-
 [[tool.hatch.envs.test.matrix]]
 python = ["3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.pypi-test-sync]
+dependencies = [
+  "dbt-sl-sdk[sync]"
+]
+[tool.hatch.envs.pypi-test-sync.env-vars]
+PIP_INDEX_URL = "https://test.pypi.org/simple/"
+PIP_EXTRA_INDEX_URL = "https://pypi.org/simple/"
+
+[tool.hatch.envs.pypi-test-async]
+dependencies = [
+  "dbt-sl-sdk[async]"
+]
+[tool.hatch.envs.pypi-test-async.env-vars]
+PIP_INDEX_URL = "https://test.pypi.org/simple/"
+PIP_EXTRA_INDEX_URL = "https://pypi.org/simple/"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
