@@ -6,7 +6,7 @@ import pyarrow as pa
 from typing_extensions import Self, Unpack
 
 from dbtsl.api.adbc.client.base import BaseADBCClient
-from dbtsl.api.adbc.protocol import ADBCProtocol, QueryParameters
+from dbtsl.api.adbc.protocol import QueryParameters
 
 
 class AsyncADBCClient(BaseADBCClient):
@@ -52,7 +52,7 @@ class AsyncADBCClient(BaseADBCClient):
 
     async def query(self, **query_params: Unpack[QueryParameters]) -> pa.Table:
         """Query for a dataframe in the Semantic Layer."""
-        query_sql = ADBCProtocol.get_query_sql(query_params)
+        query_sql = self.PROTOCOL.get_query_sql(query_params)
 
         # NOTE: We don't need to wrap this in a `loop.run_in_executor` since
         # just creating the cursor object doesn't perform any blocking IO.

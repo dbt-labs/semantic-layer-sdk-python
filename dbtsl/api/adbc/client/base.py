@@ -8,11 +8,15 @@ from adbc_driver_flightsql.dbapi import connect as adbc_connect
 from adbc_driver_manager import AdbcStatusCode, ProgrammingError
 
 import dbtsl.env as env
+from dbtsl.api.adbc.protocol import ADBCProtocol
 from dbtsl.error import AuthError, QueryFailedError
 
 
 class BaseADBCClient:
     """Base class for the ADBC API client."""
+
+    PROTOCOL = ADBCProtocol
+    DEFAULT_URL_FORMAT = env.DEFAULT_ADBC_URL_FORMAT
 
     def __init__(  # noqa: D107
         self,
@@ -21,7 +25,7 @@ class BaseADBCClient:
         auth_token: str,
         url_format: Optional[str] = None,
     ) -> None:
-        url_format = url_format or env.DEFAULT_ADBC_URL_FORMAT
+        url_format = url_format or self.DEFAULT_URL_FORMAT
         self._conn_str = url_format.format(server_host=server_host)
         self._environment_id = environment_id
         self._auth_token = auth_token

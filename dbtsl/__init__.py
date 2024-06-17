@@ -13,6 +13,4 @@ except ImportError:
 
     SemanticLayerClient = err_factory
 
-__all__ = [
-    "SemanticLayerClient"
-]
+__all__ = ["SemanticLayerClient"]

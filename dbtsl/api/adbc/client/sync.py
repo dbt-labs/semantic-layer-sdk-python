@@ -5,7 +5,7 @@ import pyarrow as pa
 from typing_extensions import Self, Unpack
 
 from dbtsl.api.adbc.client.base import BaseADBCClient
-from dbtsl.api.adbc.protocol import ADBCProtocol, QueryParameters
+from dbtsl.api.adbc.protocol import QueryParameters
 
 
 class SyncADBCClient(BaseADBCClient):
@@ -48,7 +48,7 @@ class SyncADBCClient(BaseADBCClient):
 
     def query(self, **query_params: Unpack[QueryParameters]) -> pa.Table:
         """Query for a dataframe in the Semantic Layer."""
-        query_sql = ADBCProtocol.get_query_sql(query_params)
+        query_sql = self.PROTOCOL.get_query_sql(query_params)
 
         with self._conn.cursor() as cur:
             try:

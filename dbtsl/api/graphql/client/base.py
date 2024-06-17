@@ -28,6 +28,9 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
     will choose if IO is sync or async.
     """
 
+    PROTOCOL = GraphQLProtocol
+    DEFAULT_URL_FORMAT = env.DEFAULT_GRAPHQL_URL_FORMAT
+
     @classmethod
     def _default_backoff(cls) -> ExponentialBackoff:
         """Get the default backoff behavior when polling."""
@@ -46,7 +49,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
     ):
         self.environment_id = environment_id
 
-        url_format = url_format or env.DEFAULT_GRAPHQL_URL_FORMAT
+        url_format = url_format or self.DEFAULT_URL_FORMAT
         server_url = url_format.format(server_host=server_host)
 
         transport = self._create_transport(url=server_url, headers={"authorization": f"bearer {auth_token}"})
@@ -87,7 +90,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
 
     def __getattr__(self, attr: str) -> Any:
         """Run an underlying GraphQLOperation if it exists in GraphQLProtocol."""
-        op = getattr(GraphQLProtocol, attr)
+        op = getattr(self.PROTOCOL, attr)
         if op is None:
             raise AttributeError()
 
