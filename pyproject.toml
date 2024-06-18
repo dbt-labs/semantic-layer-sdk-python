@@ -135,7 +135,7 @@ unfixable = []
 convention = "google"
 
 [tool.ruff.lint.isort]
-known-first-party = ["dbt_sl_client"]
+known-first-party = ["dbtsl"]
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore docs for test files
