@@ -68,6 +68,7 @@ fetch-schema = "python scripts/fetch_schema.py > tests/server_schema.gql"
 [tool.hatch.envs.test]
 features = [
   "async",
+  "sync",
   "dev-test"
 ]
 [tool.hatch.envs.test.scripts]

@@ -1,9 +1,10 @@
 from contextlib import contextmanager
-from typing import Dict, Iterator, Optional, Self, override
+from typing import Dict, Iterator, Optional
 
 from gql import gql
 from gql.client import SyncClientSession
 from gql.transport.requests import RequestsHTTPTransport
+from typing_extensions import Self, override
 
 from dbtsl.api.graphql.client.base import BaseGraphQLClient
 from dbtsl.api.graphql.protocol import (

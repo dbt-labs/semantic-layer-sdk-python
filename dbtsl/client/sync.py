@@ -1,5 +1,7 @@
 from contextlib import contextmanager
-from typing import Iterator, Self
+from typing import Iterator
+
+from typing_extensions import Self
 
 from dbtsl.api.adbc.client.sync import SyncADBCClient
 from dbtsl.api.graphql.client.sync import SyncGraphQLClient
