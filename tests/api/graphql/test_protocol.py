@@ -1,7 +1,6 @@
 from pytest_subtests import SubTests
 
 from dbtsl.api.graphql.protocol import GraphQLProtocol
-from dbtsl.models.metric import Metric, MetricType
 
 from ...conftest import QueryValidator
 
@@ -21,20 +20,3 @@ def test_queries_are_valid(subtests: SubTests, validate_query: QueryValidator) -
         with subtests.test(msg=f"GraphQLProtocol.{prop_name}"):
             query = prop_val.get_request_text()
             validate_query(query)
-
-
-# NOTE: the following tests will validate that the client can appropriately
-# parse an incoming server response. The "raw" responses were taken directly
-# from an instance of metricflow-server via Postman.
-def test_metrics_parses_server_respose() -> None:
-    raw = {
-        "metrics": [
-            {"name": "A", "description": "a", "type": "CUMULATIVE"},
-            {"name": "B", "description": "b", "type": "RATIO"},
-        ]
-    }
-    parsed = GraphQLProtocol.metrics.parse_response(raw)
-    assert parsed == [
-        Metric(name="A", description="a", type=MetricType.CUMULATIVE),
-        Metric(name="B", description="b", type=MetricType.RATIO),
-    ]

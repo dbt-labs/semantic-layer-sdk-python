@@ -19,6 +19,10 @@ jobs:
       - name: fetch server schema
         run: "hatch run dev:fetch-schema"
 
-      - name: basedpyright
+      - name: tests
         run: "hatch run test:run"
+        env:
+          SL_HOST: ${{ secrets.TEST_HOST }}
+          SL_ENV_ID: ${{ secrets.TEST_ENV_ID }}
+          SL_TOKEN: ${{ secrets.TEST_TOKEN }}
 
