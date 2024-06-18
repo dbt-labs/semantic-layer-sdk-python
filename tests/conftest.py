@@ -1,4 +1,7 @@
-from typing import Callable, Union, cast
+import asyncio
+import os
+from dataclasses import dataclass
+from typing import Callable, Iterator, Union, cast
 
 import pytest
 from gql import Client, gql
@@ -40,3 +43,44 @@ def validate_query(server_schema: str) -> QueryValidator:
         gql_client.validate(document=query_doc)
 
     return validator
+
+
+@dataclass
+class Credentials:
+    """Credentials used for integration testing."""
+
+    host: str
+    environment_id: int
+    token: str
+
+    @classmethod
+    def from_env(cls) -> "Credentials":
+        """Get test credentials from environment variables.
+
+        The following environment variables will be consumed:
+        - SL_HOST
+        - SL_TOKEN
+        - SL_ENV_ID
+        """
+        return cls(
+            host=os.environ["SL_HOST"],
+            token=os.environ["SL_TOKEN"],
+            environment_id=int(os.environ["SL_ENV_ID"]),
+        )
+
+
+@pytest.fixture(scope="session")
+def credentials() -> Credentials:
+    return Credentials.from_env()
+
+
+@pytest.fixture(scope="session")
+def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
+    """Override pytest-asyncio's default `event_loop` fixture.
+
+    We add scope='session' to make all tests share the same event loop.
+    This avoids concurrency issues related to opening and closing sessions.
+    """
+    loop = asyncio.get_event_loop()
+    yield loop
+    loop.close()
