@@ -88,6 +88,11 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
 
         return self._gql_session_unsafe
 
+    @property
+    def has_session(self) -> bool:
+        """Whether this client has an open session."""
+        return self._gql_session_unsafe is not None
+
     def __getattr__(self, attr: str) -> Any:
         """Run an underlying GraphQLOperation if it exists in GraphQLProtocol."""
         op = getattr(self.PROTOCOL, attr)
