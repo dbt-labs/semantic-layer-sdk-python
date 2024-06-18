@@ -212,7 +212,7 @@ class GraphQLProtocol:
     """
 
     metrics = ListMetricsOperation()
-    measures = ListDimensionsOperation()
+    dimensions = ListDimensionsOperation()
     measures = ListMeasuresOperation()
     create_query = CreateQueryOperation()
     get_query_result = GetQueryResultOperation()

@@ -1,0 +1,3 @@
+kind: Fixes
+body: Dimensions query had wrong value in protocol
+time: 2024-06-18T18:40:29.942252+02:00
