@@ -68,6 +68,11 @@ class BaseADBCClient:
 
         return self._conn_unsafe
 
+    @property
+    def has_session(self) -> bool:
+        """Whether this client has an open session."""
+        return self._conn_unsafe is not None
+
 
 TClient = TypeVar("TClient", bound=BaseADBCClient, covariant=True)
 
