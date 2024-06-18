@@ -11,26 +11,27 @@ jobs:
     if: "!startsWith(github.event.head_commit.message, 'version:')"
     steps:
       - uses: actions/checkout@v4
-      - run: git fetch --depth=1 origin ${{ github.event.pull_request.base.name }}
+      - run: git fetch --depth=1 origin main
 
       - name: Setup Python ${{ env.PYTHON_VERSION }} environment
         uses: ./.github/actions/setup-python-env
 
       - name: Check for changes
         run: |
-          ALL_CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          ALL_CHANGES=$(git diff --name-only HEAD origin/main)
 
-          CHANGIE=$(echo "$ALL_CHANGES" | grep -E "\.changes/.*\.md")
+          CHANGIE=$(echo "$ALL_CHANGES" | grep -E "\.changes/unreleased/.*\.yaml" || true)
           if [ "$CHANGIE" == "" ]; then
-            echo "No files added to `.changes/`. Make sure you run `changie new`."
+            echo "No files added to '.changes/unreleased/'. Make sure you run 'changie new'."
             exit 1
           fi
 
-          CHANGELOG=$(echo "$ALL_CHANGES" | grep "CHANGELOG.md")
+          CHANGELOG=$(echo "$ALL_CHANGES" | grep -E "CHANGELOG\.md" || true)
           if [ "$CHANGELOG" != "" ]; then
-            echo "Don't edit 'CHANGELOG.md' manually nor run `changie merge`."
+            echo "Don't edit 'CHANGELOG.md' manually nor run 'changie merge'."
             exit 1
           fi
+
 
       - name: Get latest changie version
         id: latest
