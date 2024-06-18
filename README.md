@@ -99,6 +99,17 @@ polars_df = pl.from_arrow(arrow_table)
 Check out our [usage examples](./examples/) to learn more.
 
 
+### Disabling telemetry
+
+By default, dbt the SDK sends some [platform-related information](./dbtsl/env.py) to dbt Labs. If you'd like to opt out, do
+```python
+from dbtsl.env import PLATFORM
+PLATFORM.anonymous = True
+
+# ... initialize client
+```
+
+
 ## Contributing
 
 If you're interested in contributing to this project, check out our [contribution guidelines](./CONTRIBUTING.md).

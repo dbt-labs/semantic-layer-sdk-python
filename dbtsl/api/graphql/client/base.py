@@ -40,6 +40,12 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
             timeout_ms=90000,
         )
 
+    @classmethod
+    def _extra_headers(cls) -> Dict[str, str]:
+        return {
+            "user-agent": env.PLATFORM.user_agent,
+        }
+
     def __init__(  # noqa: D107
         self,
         server_host: str,
@@ -52,7 +58,11 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         url_format = url_format or self.DEFAULT_URL_FORMAT
         server_url = url_format.format(server_host=server_host)
 
-        transport = self._create_transport(url=server_url, headers={"authorization": f"bearer {auth_token}"})
+        headers = {
+            "authorization": f"bearer {auth_token}",
+            **self._extra_headers(),
+        }
+        transport = self._create_transport(url=server_url, headers=headers)
         self._gql = Client(transport=transport)
 
         self._gql_session_unsafe: Union[TSession, None] = None

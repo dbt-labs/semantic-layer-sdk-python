@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from contextlib import AbstractContextManager
-from typing import Generic, Optional, Protocol, TypeVar, Union
+from typing import Dict, Generic, Optional, Protocol, TypeVar, Union
 
 from adbc_driver_flightsql import DatabaseOptions
 from adbc_driver_flightsql.dbapi import Connection
@@ -17,6 +17,13 @@ class BaseADBCClient:
 
     PROTOCOL = ADBCProtocol
     DEFAULT_URL_FORMAT = env.DEFAULT_ADBC_URL_FORMAT
+
+    @classmethod
+    def _extra_db_kwargs(cls) -> Dict[str, str]:
+        return {
+            DatabaseOptions.WITH_COOKIE_MIDDLEWARE.value: "true",
+            f"{DatabaseOptions.RPC_CALL_HEADER_PREFIX.value}user-agent": env.PLATFORM.user_agent,
+        }
 
     def __init__(  # noqa: D107
         self,
@@ -38,7 +45,7 @@ class BaseADBCClient:
             db_kwargs={
                 DatabaseOptions.AUTHORIZATION_HEADER.value: f"Bearer {self._auth_token}",
                 f"{DatabaseOptions.RPC_CALL_HEADER_PREFIX.value}environmentid": str(self._environment_id),
-                DatabaseOptions.WITH_COOKIE_MIDDLEWARE.value: "true",
+                **self._extra_db_kwargs(),
             },
         )
 
