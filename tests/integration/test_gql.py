@@ -44,6 +44,17 @@ async def test_async_client_lists_metrics_and_dimensions(async_client: AsyncGrap
     assert len(dims) > 0
 
 
+def test_sync_client_query_works(sync_client: SyncGraphQLClient) -> None:
+    metrics = sync_client.metrics()
+    assert len(metrics) > 0
+    table = sync_client.query(
+        metrics=[metrics[0].name],
+        group_by=["metric_time"],
+        limit=1,
+    )
+    assert len(table) > 0
+
+
 async def test_async_client_query_works(async_client: AsyncGraphQLClient) -> None:
     metrics = await async_client.metrics()
     assert len(metrics) > 0

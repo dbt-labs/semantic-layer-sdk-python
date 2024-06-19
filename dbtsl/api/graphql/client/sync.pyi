@@ -1,8 +1,10 @@
 from contextlib import AbstractContextManager
 from typing import Iterator, List, Optional
 
-from typing_extensions import Self
+import pyarrow as pa
+from typing_extensions import Self, Unpack
 
+from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.models import (
     Dimension,
     Measure,
@@ -31,3 +33,5 @@ class SyncGraphQLClient:
     def measures(self, metrics: List[str]) -> List[Measure]:
         """Get a list of all available measures for a given metric."""
         ...
+
+    def query(self, **params: Unpack[QueryParameters]) -> "pa.Table": ...
