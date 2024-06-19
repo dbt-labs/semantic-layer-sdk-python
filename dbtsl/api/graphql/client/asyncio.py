@@ -11,7 +11,6 @@ from typing_extensions import Self, Unpack, override
 from dbtsl.api.graphql.client.base import BaseGraphQLClient
 from dbtsl.api.graphql.protocol import (
     GetQueryResultVariables,
-    GraphQLProtocol,
     ProtocolOperation,
     TResponse,
     TVariables,
@@ -76,11 +75,11 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
 
     async def _create_query(self, **params: Unpack[QueryParameters]) -> QueryId:
         """Create a query that will run asynchronously."""
-        return await self._run(GraphQLProtocol.create_query, **params)  # type: ignore
+        return await self._run(self.PROTOCOL.create_query, **params)  # type: ignore
 
     async def _get_query_result(self, **params: Unpack[GetQueryResultVariables]) -> QueryResult:
         """Fetch a query's results'."""
-        return await self._run(GraphQLProtocol.get_query_result, **params)  # type: ignore
+        return await self._run(self.PROTOCOL.get_query_result, **params)  # type: ignore
 
     async def _poll_until_complete(
         self,
@@ -114,8 +113,6 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         if first_page_results.status != QueryStatus.SUCCESSFUL:
             raise QueryFailedError()
 
-        # Server should never return None if query is SUCCESSFUL.
-        # This is so pyright stops complaining
         assert first_page_results.total_pages is not None
 
         if first_page_results.total_pages == 1:
