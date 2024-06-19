@@ -1,3 +1,0 @@
-kind: Fixes
-body: Fix `backoff` not using `exp_factor`
-time: 2024-06-18T18:00:37.645589+02:00
