@@ -1,6 +1,12 @@
 name: Create release PR
 on:
   workflow_dispatch:
+    inputs:
+      bump:
+        description: The version bump type. Can be 'major', 'minor', 'patch'
+        default: minor
+        required: true
+        type: string
 
 jobs:
   create-release-pr:
@@ -14,7 +20,7 @@ jobs:
         uses: miniscruff/changie-action@v2
         with:
           version: latest
-          args: batch auto
+          args: batch auto ${{ inputs.bump }}
 
       - name: Merge
         uses: miniscruff/changie-action@v2
