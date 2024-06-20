@@ -1,15 +1,33 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, List, Mapping, TypedDict, TypeVar
+from typing import Any, Dict, Generic, List, Mapping, Protocol, TypedDict, TypeVar
 
 from mashumaro.codecs.basic import decode as decode_to_dataclass
 from typing_extensions import NotRequired, override
 
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.models import Dimension, Measure, Metric
-from dbtsl.models.query import QueryId, QueryResult
+from dbtsl.models.query import QueryId, QueryResult, QueryStatus
+
+
+class JobStatusVariables(TypedDict):
+    """Variables of operations that will get a job's status."""
+
+    query_id: QueryId
+
+
+class JobStatusResult(Protocol):
+    """Result of operations that fetch a job's status."""
+
+    @property
+    def status(self) -> QueryStatus:
+        """The job status."""
+        raise NotImplementedError()
+
 
 TVariables = TypeVar("TVariables", bound=Mapping[str, Any])
-TResponse = TypeVar("TResponse")
+# Need to make TResponse covariant otherwise we can't annotate something like
+# def func(a: ProtocolOperation[JobStatusVariables, JobStatusResult]) -> JobStatusResult:
+TResponse = TypeVar("TResponse", covariant=True)
 
 
 class ProtocolOperation(Generic[TVariables, TResponse], ABC):
