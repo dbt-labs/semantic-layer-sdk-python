@@ -11,13 +11,15 @@ from typing_extensions import Self, Unpack, override
 from dbtsl.api.graphql.client.base import BaseGraphQLClient
 from dbtsl.api.graphql.protocol import (
     ProtocolOperation,
+    TJobStatusResult,
+    TJobStatusVariables,
     TResponse,
     TVariables,
 )
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.backoff import ExponentialBackoff
 from dbtsl.error import QueryFailedError
-from dbtsl.models.query import QueryId, QueryResult, QueryStatus
+from dbtsl.models.query import QueryId, QueryStatus
 
 
 class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSession]):
@@ -78,8 +80,10 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
     def _poll_until_complete(
         self,
         query_id: QueryId,
+        poll_op: ProtocolOperation[TJobStatusVariables, TJobStatusResult],
         backoff: Optional[ExponentialBackoff] = None,
-    ) -> QueryResult:
+        **kwargs,
+    ) -> TJobStatusResult:
         """Poll for a query's results until it is in a completed state (SUCCESSFUL or FAILED).
 
         Note that this function does NOT fetch all pages in case the query is SUCCESSFUL. It only
@@ -91,7 +95,8 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         for sleep_ms in backoff.iter_ms():
             # TODO: add timeout param to all requests because technically the API could hang and
             # then we don't respect timeout.
-            qr = self.get_query_result(query_id=query_id, page_num=1)
+            kwargs["query_id"] = query_id
+            qr = self._run(poll_op, **kwargs)
             if qr.status in (QueryStatus.SUCCESSFUL, QueryStatus.FAILED):
                 return qr
 
@@ -103,7 +108,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
     def query(self, **params: Unpack[QueryParameters]) -> "pa.Table":
         """Query the Semantic Layer."""
         query_id = self.create_query(**params)
-        first_page_results = self._poll_until_complete(query_id)
+        first_page_results = self._poll_until_complete(query_id, self.PROTOCOL.get_query_result, page_num=1)
         if first_page_results.status != QueryStatus.SUCCESSFUL:
             raise QueryFailedError()
 

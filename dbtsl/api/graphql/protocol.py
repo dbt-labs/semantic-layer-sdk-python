@@ -24,6 +24,11 @@ class JobStatusResult(Protocol):
         raise NotImplementedError()
 
 
+TJobStatusVariables = TypeVar("TJobStatusVariables", bound=JobStatusVariables, covariant=True)
+
+TJobStatusResult = TypeVar("TJobStatusResult", bound=JobStatusResult, covariant=True)
+
+
 TVariables = TypeVar("TVariables", bound=Mapping[str, Any])
 # Need to make TResponse covariant otherwise we can't annotate something like
 # def func(a: ProtocolOperation[JobStatusVariables, JobStatusResult]) -> JobStatusResult:

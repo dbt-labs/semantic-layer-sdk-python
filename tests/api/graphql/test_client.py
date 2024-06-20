@@ -1,6 +1,6 @@
 import base64
 import io
-from unittest.mock import AsyncMock, call
+from unittest.mock import AsyncMock, MagicMock, call
 
 import pyarrow as pa
 from pytest_mock import MockerFixture
@@ -106,8 +106,19 @@ def test_sync_query_multiple_pages(mocker: MockerFixture) -> None:
             arrow_result=base64.b64encode(byte_stream.getvalue()).decode("utf-8"),
         )
 
+    def run_behavior(op: ProtocolOperation, query_id: QueryId, page_num: int) -> QueryResult:
+        return gqr_behavior(query_id, page_num)
+
     cq_mock = mocker.patch.object(client, "create_query", return_value=query_id)
-    gqr_mock = mocker.patch.object(client, "get_query_result", side_effect=gqr_behavior)
+
+    run_mock = MagicMock(side_effect=run_behavior)
+    mocker.patch.object(client, "_run", new=run_mock)
+    gqr_mock = MagicMock(side_effect=gqr_behavior)
+    mocker.patch.object(client, "get_query_result", new=gqr_mock)
+
+    gql_mock = mocker.patch.object(client, "_gql")
+    mocker.patch.object(gql_mock, "__aenter__")
+    mocker.patch("dbtsl.api.graphql.client.sync.isinstance", return_value=True)
 
     kwargs: QueryParameters = {"metrics": ["m1", "m2"], "group_by": ["gb"], "limit": 1}
 
@@ -116,9 +127,14 @@ def test_sync_query_multiple_pages(mocker: MockerFixture) -> None:
 
     cq_mock.assert_called_once_with(**kwargs)
 
+    run_mock.assert_has_calls(
+        [
+            call(GraphQLProtocol.get_query_result, query_id=query_id, page_num=1),
+        ]
+    )
+
     gqr_mock.assert_has_calls(
         [
-            call(query_id=query_id, page_num=1),
             call(query_id=query_id, page_num=2),
             call(query_id=query_id, page_num=3),
             call(query_id=query_id, page_num=4),

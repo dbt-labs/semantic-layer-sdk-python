@@ -1,6 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Dict, Optional, TypeVar
+from typing import AsyncIterator, Dict, Optional
 
 import pyarrow as pa
 from gql import gql
@@ -10,9 +10,9 @@ from typing_extensions import Self, Unpack, override
 
 from dbtsl.api.graphql.client.base import BaseGraphQLClient
 from dbtsl.api.graphql.protocol import (
-    JobStatusResult,
-    JobStatusVariables,
     ProtocolOperation,
+    TJobStatusResult,
+    TJobStatusVariables,
     TResponse,
     TVariables,
 )
@@ -20,9 +20,6 @@ from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.backoff import ExponentialBackoff
 from dbtsl.error import QueryFailedError
 from dbtsl.models.query import QueryId, QueryStatus
-
-TJobStatusVariables = TypeVar("TJobStatusVariables", bound=JobStatusVariables, covariant=True)
-TJobStatusResult = TypeVar("TJobStatusResult", bound=JobStatusResult, covariant=True)
 
 
 class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]):
