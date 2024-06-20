@@ -10,9 +10,6 @@ from gql.transport.exceptions import TransportQueryError
 import dbtsl.env as env
 from dbtsl.api.graphql.protocol import (
     GraphQLProtocol,
-    ProtocolOperation,
-    TResponse,
-    TVariables,
 )
 from dbtsl.backoff import ExponentialBackoff
 from dbtsl.error import AuthError
@@ -72,20 +69,16 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         """Create the underlying transport to be used by the gql Client."""
         raise NotImplementedError()
 
-    @abstractmethod
-    def _run(self, op: ProtocolOperation[TVariables, TResponse], **kwargs: TVariables) -> TResponse:
-        raise NotImplementedError()
+    def _refine_err(self, err: Exception) -> Exception:
+        """Refine a generic exception that might have happened during `_run`."""
+        if (
+            isinstance(err, TransportQueryError)
+            and err.errors is not None
+            and err.errors[0]["message"] == "User is not authorized"
+        ):
+            return AuthError(err.args)
 
-    def _run_err_wrapper(self, op: ProtocolOperation[TVariables, TResponse], **kwargs: TVariables) -> TResponse:
-        try:
-            return self._run(op, **kwargs)
-        except TransportQueryError as err:
-            # TODO: we should probably return an error type that has an Enum from GraphQL
-            # instead of depending on error messages
-            if err.errors is not None and err.errors[0]["message"] == "User is not authorized":
-                raise AuthError(err.args)
-
-            raise err
+        return err
 
     @property
     def _gql_session(self) -> TSession:
@@ -110,7 +103,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
             raise AttributeError()
 
         return functools.partial(
-            self._run_err_wrapper,
+            self._run,
             op=op,
         )
 
