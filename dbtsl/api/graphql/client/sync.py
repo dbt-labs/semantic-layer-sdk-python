@@ -10,7 +10,6 @@ from typing_extensions import Self, Unpack, override
 
 from dbtsl.api.graphql.client.base import BaseGraphQLClient
 from dbtsl.api.graphql.protocol import (
-    GetQueryResultVariables,
     ProtocolOperation,
     TResponse,
     TVariables,
@@ -69,17 +68,12 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         variables = op.get_request_variables(environment_id=self.environment_id, **kwargs)
         gql_query = gql(raw_query)
 
-        res = self._gql_session.execute(gql_query, variable_values=variables)
+        try:
+            res = self._gql_session.execute(gql_query, variable_values=variables)
+        except Exception as err:
+            raise self._refine_err(err)
 
         return op.parse_response(res)
-
-    def _create_query(self, **params: Unpack[QueryParameters]) -> QueryId:
-        """Create a query that will run asynchronously."""
-        return self._run(self.PROTOCOL.create_query, **params)  # type: ignore
-
-    def _get_query_result(self, **params: Unpack[GetQueryResultVariables]) -> QueryResult:
-        """Fetch a query's results'."""
-        return self._run(self.PROTOCOL.get_query_result, **params)  # type: ignore
 
     def _poll_until_complete(
         self,
@@ -97,7 +91,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         for sleep_ms in backoff.iter_ms():
             # TODO: add timeout param to all requests because technically the API could hang and
             # then we don't respect timeout.
-            qr = self._get_query_result(query_id=query_id, page_num=1)
+            qr = self.get_query_result(query_id=query_id, page_num=1)
             if qr.status in (QueryStatus.SUCCESSFUL, QueryStatus.FAILED):
                 return qr
 
@@ -108,7 +102,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
 
     def query(self, **params: Unpack[QueryParameters]) -> "pa.Table":
         """Query the Semantic Layer."""
-        query_id = self._create_query(**params)
+        query_id = self.create_query(**params)
         first_page_results = self._poll_until_complete(query_id)
         if first_page_results.status != QueryStatus.SUCCESSFUL:
             raise QueryFailedError()
@@ -119,7 +113,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
             return first_page_results.result_table
 
         results = [
-            self._get_query_result(query_id=query_id, page_num=page)
+            self.get_query_result(query_id=query_id, page_num=page)
             for page in range(2, first_page_results.total_pages + 1)
         ]
         all_page_results = [first_page_results] + results
