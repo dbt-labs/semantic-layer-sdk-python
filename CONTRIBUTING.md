@@ -43,9 +43,13 @@ We use [changie](https://changie.dev/) to manage our [`CHANGELOG.md`](./CHANGELO
 
 ### Running tests
 
-Run tests by using `hatch run test:run`. This will run all our tests in all supported Python versions. Make sure they pass before you submit a PR.
+Run tests by using `hatch run test:all`. This will run all our tests in all supported Python versions. Make sure they pass before you submit a PR.
 
-The test suite requires a `tests/server_schema.gql` file to exist, since it checks that all GraphQL queries from the SDK will work against the server. That file must contain the schema of the GraphQL API, and you can obtain it by running our introspection script with `hatch run dev:fetch-schema`.
+If you want to run unit test separately, run `hatch run test:unit`. For integration tests, run `hatch run test.py3.12:integration` to avoid running slow tests in all python versions.
+
+The unit test suite requires a `tests/server_schema.gql` file to exist, since it checks that all GraphQL queries from the SDK will work against the server. That file must contain the schema of the GraphQL API, and you can obtain it by running our introspection script with `hatch run dev:fetch-schema`.
+
+The integration test suite requires an actual Semantic Layer account. Make sure you have `SL_HOST`, `SL_TOKEN` and `SL_ENV_ID` set as environment variables before running.
 
 
 ### Committing changes

@@ -72,7 +72,10 @@ features = [
   "dev-test"
 ]
 [tool.hatch.envs.test.scripts]
-run = "pytest --server-schema tests/server_schema.gql"
+all = "pytest --server-schema tests/server_schema.gql"
+unit = "pytest --ignore tests/integration/ --server-schema tests/server_schema.gql"
+integration = "pytest tests/integration/ --server-schema tests/server_schema.gql"
+
 [[tool.hatch.envs.test.matrix]]
 python = ["3.9", "3.10", "3.11", "3.12"]
 
