@@ -3,10 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       bump:
-        description: The version bump type. Can be 'major', 'minor', 'patch'
+        type: choice
+        description: The version bump type. 
         default: minor
-        required: true
-        type: string
+        options:
+          - major
+          - minor
+          - patch
 
 jobs:
   create-release-pr:
@@ -20,7 +23,7 @@ jobs:
         uses: miniscruff/changie-action@v2
         with:
           version: latest
-          args: batch auto ${{ inputs.bump }}
+          args: batch ${{ inputs.bump }}
 
       - name: Merge
         uses: miniscruff/changie-action@v2
