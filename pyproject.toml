@@ -28,7 +28,7 @@ async = [
 sync = [
   "deps/sync.txt"
 ]
-dev-main = [
+dev-all = [
   "deps/dev.txt",
 ]
 dev-test = [
@@ -57,18 +57,13 @@ features = [
 
 [tool.hatch.envs.dev]
 features = [
-  "async",
-  "sync",
-  "dev-main",
-  "dev-test"
+  "dev-all",
 ]
 [tool.hatch.envs.dev.scripts]
 fetch-schema = "python scripts/fetch_schema.py > tests/server_schema.gql"
 
 [tool.hatch.envs.test]
 features = [
-  "async",
-  "sync",
   "dev-test"
 ]
 [tool.hatch.envs.test.scripts]
