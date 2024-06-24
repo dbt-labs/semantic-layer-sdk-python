@@ -1,0 +1,3 @@
+kind: Dependencies
+body: Fix the way we specify dependencies to avoid conflicts.
+time: 2024-06-24T15:17:29.393201+02:00
