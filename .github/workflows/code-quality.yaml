@@ -19,8 +19,11 @@ jobs:
       - name: fetch server schema
         run: "hatch run dev:fetch-schema"
 
-      - name: tests
-        run: "hatch run test:run"
+      - name: unit tests
+        run: "hatch run test:unit"
+
+      - name: integration tests
+        run: "hatch run test.py3.12:integration"
         env:
           SL_HOST: ${{ secrets.TEST_HOST }}
           SL_ENV_ID: ${{ secrets.TEST_ENV_ID }}
