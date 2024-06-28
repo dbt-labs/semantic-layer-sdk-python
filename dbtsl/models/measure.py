@@ -1,8 +1,8 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from mashumaro import DataClassDictMixin, field_options
+from dbtsl.models.base import BaseModel
 
 
 class AggregationType(str, Enum):
@@ -20,10 +20,10 @@ class AggregationType(str, Enum):
 
 
 @dataclass(frozen=True)
-class Measure(DataClassDictMixin):
+class Measure(BaseModel):
     """A measure."""
 
     name: str
-    agg_time_dimension: Optional[str] = field(metadata=field_options(alias="aggTimeDimension"))
+    agg_time_dimension: Optional[str]
     agg: AggregationType
     expr: str

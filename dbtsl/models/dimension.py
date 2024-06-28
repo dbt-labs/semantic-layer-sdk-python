@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from mashumaro import DataClassDictMixin
+from dbtsl.models.base import BaseModel
 
 
 class DimensionType(str, Enum):
@@ -12,7 +12,7 @@ class DimensionType(str, Enum):
 
 
 @dataclass(frozen=True)
-class Dimension(DataClassDictMixin):
+class Dimension(BaseModel):
     """A metric dimension."""
 
     name: str

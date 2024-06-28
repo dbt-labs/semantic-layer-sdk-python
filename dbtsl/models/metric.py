@@ -1,10 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from mashumaro import DataClassDictMixin
-
-# TODO @serramatutu: replace this file with codegen from GraphQL API
-# See: https://strawberry.rocks/docs/codegen/query-codegen
+from dbtsl.models.base import BaseModel
 
 
 class MetricType(str, Enum):
@@ -28,7 +25,7 @@ class MetricType(str, Enum):
 
 
 @dataclass(frozen=True)
-class Metric(DataClassDictMixin):
+class Metric(BaseModel):
     """A metric."""
 
     name: str
