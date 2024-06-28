@@ -1,11 +1,12 @@
 import base64
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from typing import NewType, Optional
 
 import pyarrow as pa
-from mashumaro import DataClassDictMixin, field_options
+
+from dbtsl.models.base import BaseModel
 
 QueryId = NewType("QueryId", str)
 
@@ -21,15 +22,15 @@ class QueryStatus(str, Enum):
 
 
 @dataclass(frozen=True)
-class QueryResult(DataClassDictMixin):
+class QueryResult(BaseModel):
     """A query result containing its status, SQL and error/results."""
 
-    query_id: QueryId = field(metadata=field_options(alias="queryId"))
+    query_id: QueryId
     status: QueryStatus
     sql: Optional[str]
     error: Optional[str]
-    total_pages: Optional[int] = field(metadata=field_options(alias="totalPages"))
-    arrow_result: Optional[str] = field(metadata=field_options(alias="arrowResult"))
+    total_pages: Optional[int]
+    arrow_result: Optional[str]
 
     @cached_property
     def result_table(self) -> pa.Table:
