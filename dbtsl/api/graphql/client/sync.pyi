@@ -7,6 +7,7 @@ from typing_extensions import Self, Unpack
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.models import (
     Dimension,
+    Entity,
     Measure,
     Metric,
 )
@@ -32,6 +33,10 @@ class SyncGraphQLClient:
 
     def measures(self, metrics: List[str]) -> List[Measure]:
         """Get a list of all available measures for a given metric."""
+        ...
+
+    def entities(self, metrics: List[str]) -> List[Entity]:
+        """Get a list of all available entities for a given metric."""
         ...
 
     def query(self, **params: Unpack[QueryParameters]) -> "pa.Table": ...
