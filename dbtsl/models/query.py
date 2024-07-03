@@ -6,7 +6,7 @@ from typing import NewType, Optional
 
 import pyarrow as pa
 
-from dbtsl.models.base import BaseModel
+from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
 
 QueryId = NewType("QueryId", str)
 
@@ -22,7 +22,7 @@ class QueryStatus(str, Enum):
 
 
 @dataclass(frozen=True)
-class QueryResult(BaseModel):
+class QueryResult(BaseModel, GraphQLFragmentMixin):
     """A query result containing its status, SQL and error/results."""
 
     query_id: QueryId

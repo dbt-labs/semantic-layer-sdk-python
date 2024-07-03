@@ -4,6 +4,7 @@ from typing import Any, Dict, Generic, List, Mapping, Protocol, TypedDict, TypeV
 from mashumaro.codecs.basic import decode as decode_to_dataclass
 from typing_extensions import NotRequired, override
 
+from dbtsl.api.graphql.util import render_query
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.models import Dimension, Measure, Metric
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
@@ -68,13 +69,11 @@ class ListMetricsOperation(ProtocolOperation[EmptyVariables, List[Metric]]):
         query = """
         query getMetrics($environmentId: BigInt!) {
             metrics(environmentId: $environmentId) {
-                name
-                description
-                type
+                ...&fragment
             }
         }
         """
-        return query
+        return render_query(query, Metric.gql_fragments())
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: EmptyVariables) -> Dict[str, Any]:
@@ -99,13 +98,11 @@ class ListDimensionsOperation(ProtocolOperation[ListEntitiesOperationVariables, 
         query = """
         query getDimensions($environmentId: BigInt!, $metrics: [MetricInput!]!) {
             dimensions(environmentId: $environmentId, metrics: $metrics) {
-                name
-                description
-                type
+                ...&fragment
             }
         }
         """
-        return query
+        return render_query(query, Dimension.gql_fragments())
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
@@ -127,14 +124,11 @@ class ListMeasuresOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
         query = """
         query getMeasures($environmentId: BigInt!, $metrics: [MetricInput!]!) {
             measures(environmentId: $environmentId, metrics: $metrics) {
-                name
-                aggTimeDimension
-                agg
-                expr
+                ...&fragment
             }
         }
         """
-        return query
+        return render_query(query, Measure.gql_fragments())
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
@@ -203,16 +197,11 @@ class GetQueryResultOperation(ProtocolOperation[GetQueryResultVariables, QueryRe
             $pageNum: Int!
         ) {
             query(environmentId: $environmentId, queryId: $queryId, pageNum: $pageNum) {
-                queryId,
-                status,
-                sql,
-                error,
-                totalPages,
-                arrowResult
+                ...&fragment
             }
         }
         """
-        return query
+        return render_query(query, QueryResult.gql_fragments())
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: GetQueryResultVariables) -> Dict[str, Any]:

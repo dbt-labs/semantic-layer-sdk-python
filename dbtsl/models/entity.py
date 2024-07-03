@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from dbtsl.models.base import BaseModel
+from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
 
 
 class EntityType(str, Enum):
@@ -15,7 +15,7 @@ class EntityType(str, Enum):
 
 
 @dataclass(frozen=True)
-class Entity(BaseModel):
+class Entity(BaseModel, GraphQLFragmentMixin):
     """An entity."""
 
     name: str

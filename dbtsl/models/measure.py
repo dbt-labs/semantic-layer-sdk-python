@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from dbtsl.models.base import BaseModel
+from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
 
 
 class AggregationType(str, Enum):
@@ -20,7 +20,7 @@ class AggregationType(str, Enum):
 
 
 @dataclass(frozen=True)
-class Measure(BaseModel):
+class Measure(BaseModel, GraphQLFragmentMixin):
     """A measure."""
 
     name: str

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
-from dbtsl.models.base import BaseModel
+from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
 from dbtsl.models.dimension import Dimension
 from dbtsl.models.entity import Entity
 from dbtsl.models.measure import Measure
@@ -19,7 +19,7 @@ class MetricType(str, Enum):
 
 
 @dataclass(frozen=True)
-class Metric(BaseModel):
+class Metric(BaseModel, GraphQLFragmentMixin):
     """A metric."""
 
     name: str

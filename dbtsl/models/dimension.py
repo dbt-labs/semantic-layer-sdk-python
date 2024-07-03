@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from dbtsl.models.base import BaseModel
+from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
 
 
 class DimensionType(str, Enum):
@@ -12,7 +12,7 @@ class DimensionType(str, Enum):
 
 
 @dataclass(frozen=True)
-class Dimension(BaseModel):
+class Dimension(BaseModel, GraphQLFragmentMixin):
     """A metric dimension."""
 
     name: str

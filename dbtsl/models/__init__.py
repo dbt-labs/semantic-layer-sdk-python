@@ -9,6 +9,10 @@ from .dimension import Dimension, DimensionType
 from .entity import Entity, EntityType
 from .measure import AggregationType, Measure
 from .metric import Metric, MetricType
+from .query import QueryResult
+
+# Only importing this so it registers aliases
+_ = QueryResult
 
 BaseModel._apply_aliases()
 
