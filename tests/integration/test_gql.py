@@ -33,15 +33,19 @@ def sync_client(credentials: Credentials) -> Iterator[SyncGraphQLClient]:
 def test_sync_client_lists_metrics_and_dimensions(sync_client: SyncGraphQLClient) -> None:
     metrics = sync_client.metrics()
     assert len(metrics) > 0
+
     dims = sync_client.dimensions(metrics=[metrics[0].name])
     assert len(dims) > 0
+    assert dims == metrics[0].dimensions
 
 
 async def test_async_client_lists_metrics_and_dimensions(async_client: AsyncGraphQLClient) -> None:
     metrics = await async_client.metrics()
     assert len(metrics) > 0
+
     dims = await async_client.dimensions(metrics=[metrics[0].name])
     assert len(dims) > 0
+    assert dims == metrics[0].dimensions
 
 
 def test_sync_client_query_works(sync_client: SyncGraphQLClient) -> None:

@@ -49,13 +49,18 @@ class GraphQLFragment:
 
 
 class GraphQLFragmentMixin:
-    """Add this to any model that need to be fetched from GraphQL."""
+    """Add this to any model that needs to be fetched from GraphQL."""
 
     @classmethod
     def gql_model_name(cls) -> str:
         """The model's name in the GraphQL schema. Defaults to same as class name."""
         return cls.__name__
 
+    # NOTE: this will overflow the stack if we add any circular dependencies in our GraphQL schema, like
+    # Metric -> Dimension -> Metric -> Dimension ...
+    #
+    # If we do that, we need to modify this method to memoize what fragments were already created
+    # so that we exit the recursion gracefully
     @staticmethod
     def _get_fragments_for_field(type: Type, field_name: str) -> Union[str, List[GraphQLFragment]]:
         if inspect.isclass(type) and issubclass(type, GraphQLFragmentMixin):
