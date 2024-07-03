@@ -6,16 +6,19 @@ generated code from our GraphQL schema.
 
 from .base import BaseModel
 from .dimension import Dimension, DimensionType
+from .entity import Entity, EntityType
 from .measure import AggregationType, Measure
 from .metric import Metric, MetricType
 
 BaseModel._apply_aliases()
 
 __all__ = [
+    "AggregationType",
     "Dimension",
     "DimensionType",
+    "Entity",
+    "EntityType",
     "Measure",
-    "AggregationType",
     "Metric",
     "MetricType",
 ]
