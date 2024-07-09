@@ -18,3 +18,4 @@ class QueryParameters(TypedDict):
     limit: NotRequired[int]
     order_by: NotRequired[List[str]]
     where: NotRequired[List[str]]
+    read_cache: NotRequired[bool]
