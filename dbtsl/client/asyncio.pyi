@@ -5,7 +5,7 @@ import pyarrow as pa
 from typing_extensions import Self, Unpack
 
 from dbtsl.api.adbc.protocol import QueryParameters
-from dbtsl.models import Dimension, Measure, Metric
+from dbtsl.models import Dimension, Entity, Measure, Metric, SavedQuery
 
 class AsyncSemanticLayerClient:
     def __init__(
@@ -28,6 +28,14 @@ class AsyncSemanticLayerClient:
 
     async def measures(self, metrics: List[str]) -> List[Measure]:
         """List all the measures available for a given set of metrics."""
+        ...
+
+    async def entities(self, metrics: List[str]) -> List[Entity]:
+        """Get a list of all available entities for a given set of metrics."""
+        ...
+
+    async def saved_queries(self) -> List[SavedQuery]:
+        """Get a list of all available saved queries."""
         ...
 
     def session(self) -> AbstractAsyncContextManager[AsyncIterator[Self]]:

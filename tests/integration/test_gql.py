@@ -30,18 +30,40 @@ def sync_client(credentials: Credentials) -> Iterator[SyncGraphQLClient]:
         yield client
 
 
-def test_sync_client_lists_metrics_and_dimensions(sync_client: SyncGraphQLClient) -> None:
+def test_sync_client_lists_metrics_dimensions_entities(sync_client: SyncGraphQLClient) -> None:
     metrics = sync_client.metrics()
     assert len(metrics) > 0
+
     dims = sync_client.dimensions(metrics=[metrics[0].name])
     assert len(dims) > 0
+    assert dims == metrics[0].dimensions
+
+    entities = sync_client.entities(metrics=[metrics[0].name])
+    assert len(entities) > 0
+    assert entities == metrics[0].entities
 
 
-async def test_async_client_lists_metrics_and_dimensions(async_client: AsyncGraphQLClient) -> None:
+async def test_async_client_lists_metrics_dimensions_entities(async_client: AsyncGraphQLClient) -> None:
     metrics = await async_client.metrics()
     assert len(metrics) > 0
+
     dims = await async_client.dimensions(metrics=[metrics[0].name])
     assert len(dims) > 0
+    assert dims == metrics[0].dimensions
+
+    entities = await async_client.entities(metrics=[metrics[0].name])
+    assert len(entities) > 0
+    assert entities == metrics[0].entities
+
+
+def test_sync_client_lists_saved_queries(sync_client: SyncGraphQLClient) -> None:
+    sqs = sync_client.saved_queries()
+    assert len(sqs) > 0
+
+
+async def test_async_client_lists_saved_queries(async_client: AsyncGraphQLClient) -> None:
+    sqs = await async_client.saved_queries()
+    assert len(sqs) > 0
 
 
 def test_sync_client_query_works(sync_client: SyncGraphQLClient) -> None:

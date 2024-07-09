@@ -32,6 +32,21 @@ def main() -> None:
             print(f"     type={m.type}")
             print(f"     description={m.description}")
 
+            print("     dimensions=[")
+            for dim in m.dimensions:
+                print(f"        {dim.name},")
+            print("     ]")
+
+            print("     measures=[")
+            for measure in m.measures:
+                print(f"        {measure.name},")
+            print("     ]")
+
+            print("     entities=[")
+            for entity in m.entities:
+                print(f"        {entity.name},")
+            print("     ]")
+
 
 if __name__ == "__main__":
     main()

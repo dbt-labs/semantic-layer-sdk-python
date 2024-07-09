@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import List, Optional
 
-from dbtsl.models.base import BaseModel
+from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.time_granularity import TimeGranularity
 
 
 class DimensionType(str, Enum):
@@ -12,9 +14,14 @@ class DimensionType(str, Enum):
 
 
 @dataclass(frozen=True)
-class Dimension(BaseModel):
+class Dimension(BaseModel, GraphQLFragmentMixin):
     """A metric dimension."""
 
     name: str
-    description: str
+    qualified_name: str
+    description: Optional[str]
     type: DimensionType
+    label: Optional[str]
+    is_partition: bool
+    expr: Optional[str]
+    queryable_granularities: List[TimeGranularity]

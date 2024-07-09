@@ -4,9 +4,11 @@ from typing import Any, Dict, Generic, List, Mapping, Protocol, TypedDict, TypeV
 from mashumaro.codecs.basic import decode as decode_to_dataclass
 from typing_extensions import NotRequired, override
 
+from dbtsl.api.graphql.util import render_query
 from dbtsl.api.shared.query_params import QueryParameters
-from dbtsl.models import Dimension, Measure, Metric
+from dbtsl.models import Dimension, Entity, Measure, Metric
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
+from dbtsl.models.saved_query import SavedQuery
 
 
 class JobStatusVariables(TypedDict):
@@ -68,13 +70,11 @@ class ListMetricsOperation(ProtocolOperation[EmptyVariables, List[Metric]]):
         query = """
         query getMetrics($environmentId: BigInt!) {
             metrics(environmentId: $environmentId) {
-                name
-                description
-                type
+                ...&fragment
             }
         }
         """
-        return query
+        return render_query(query, Metric.gql_fragments())
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: EmptyVariables) -> Dict[str, Any]:
@@ -99,13 +99,11 @@ class ListDimensionsOperation(ProtocolOperation[ListEntitiesOperationVariables, 
         query = """
         query getDimensions($environmentId: BigInt!, $metrics: [MetricInput!]!) {
             dimensions(environmentId: $environmentId, metrics: $metrics) {
-                name
-                description
-                type
+                ...&fragment
             }
         }
         """
-        return query
+        return render_query(query, Dimension.gql_fragments())
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
@@ -127,14 +125,11 @@ class ListMeasuresOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
         query = """
         query getMeasures($environmentId: BigInt!, $metrics: [MetricInput!]!) {
             measures(environmentId: $environmentId, metrics: $metrics) {
-                name
-                aggTimeDimension
-                agg
-                expr
+                ...&fragment
             }
         }
         """
-        return query
+        return render_query(query, Measure.gql_fragments())
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
@@ -146,6 +141,55 @@ class ListMeasuresOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
     @override
     def parse_response(self, data: Dict[str, Any]) -> List[Measure]:
         return decode_to_dataclass(data["measures"], List[Measure])
+
+
+class ListEntitiesOperation(ProtocolOperation[ListEntitiesOperationVariables, List[Entity]]):
+    """List all entities for a given set of metrics."""
+
+    @override
+    def get_request_text(self) -> str:
+        query = """
+        query getEntities($environmentId: BigInt!, $metrics: [MetricInput!]!) {
+            entities(environmentId: $environmentId, metrics: $metrics) {
+                ...&fragment
+            }
+        }
+        """
+        return render_query(query, Entity.gql_fragments())
+
+    @override
+    def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
+        return {
+            "environmentId": environment_id,
+            "metrics": [{"name": m} for m in kwargs["metrics"]],
+        }
+
+    @override
+    def parse_response(self, data: Dict[str, Any]) -> List[Entity]:
+        return decode_to_dataclass(data["entities"], List[Entity])
+
+
+class ListSavedQueriesOperation(ProtocolOperation[EmptyVariables, List[SavedQuery]]):
+    """List all saved queries."""
+
+    @override
+    def get_request_text(self) -> str:
+        query = """
+        query getSavedQueries($environmentId: BigInt!) {
+            savedQueries(environmentId: $environmentId) {
+                ...&fragment
+            }
+        }
+        """
+        return render_query(query, SavedQuery.gql_fragments())
+
+    @override
+    def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
+        return {"environmentId": environment_id}
+
+    @override
+    def parse_response(self, data: Dict[str, Any]) -> List[SavedQuery]:
+        return decode_to_dataclass(data["savedQueries"], List[SavedQuery])
 
 
 class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
@@ -203,16 +247,11 @@ class GetQueryResultOperation(ProtocolOperation[GetQueryResultVariables, QueryRe
             $pageNum: Int!
         ) {
             query(environmentId: $environmentId, queryId: $queryId, pageNum: $pageNum) {
-                queryId,
-                status,
-                sql,
-                error,
-                totalPages,
-                arrowResult
+                ...&fragment
             }
         }
         """
-        return query
+        return render_query(query, QueryResult.gql_fragments())
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: GetQueryResultVariables) -> Dict[str, Any]:
@@ -237,5 +276,7 @@ class GraphQLProtocol:
     metrics = ListMetricsOperation()
     dimensions = ListDimensionsOperation()
     measures = ListMeasuresOperation()
+    entities = ListEntitiesOperation()
+    saved_queries = ListSavedQueriesOperation()
     create_query = CreateQueryOperation()
     get_query_result = GetQueryResultOperation()

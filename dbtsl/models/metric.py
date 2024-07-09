@@ -1,7 +1,12 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import List, Optional
 
-from dbtsl.models.base import BaseModel
+from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.dimension import Dimension
+from dbtsl.models.entity import Entity
+from dbtsl.models.measure import Measure
+from dbtsl.models.time_granularity import TimeGranularity
 
 
 class MetricType(str, Enum):
@@ -12,22 +17,18 @@ class MetricType(str, Enum):
     CUMULATIVE = "CUMULATIVE"
     DERIVED = "DERIVED"
     CONVERSION = "CONVERSION"
-    UNKNOWN = "UNKNOWN"
-
-    @classmethod
-    def missing(cls, _: str) -> "MetricType":
-        """Return UNKNOWN by default.
-
-        Prevents client from breaking in case a new unknown type is introduced
-        by the server.
-        """
-        return cls.UNKNOWN
 
 
 @dataclass(frozen=True)
-class Metric(BaseModel):
+class Metric(BaseModel, GraphQLFragmentMixin):
     """A metric."""
 
     name: str
-    description: str
+    description: Optional[str]
     type: MetricType
+    dimensions: List[Dimension]
+    measures: List[Measure]
+    entities: List[Entity]
+    queryable_granularities: List[TimeGranularity]
+    label: str
+    requires_metric_time: bool
