@@ -13,7 +13,11 @@ class ADBCProtocol:
         def append_param_if_exists(p_str: str, p_name: str) -> str:
             p_value = params.get(p_name)
             if p_value is not None:
-                p_str += f"{p_name}={json.dumps(p_value)},"
+                if isinstance(p_value, bool):
+                    dumped = str(p_value)
+                else:
+                    dumped = json.dumps(p_value)
+                p_str += f"{p_name}={dumped},"
             return p_str
 
         serialized_params = append_param_if_exists(serialized_params, "metrics")
@@ -21,6 +25,7 @@ class ADBCProtocol:
         serialized_params = append_param_if_exists(serialized_params, "limit")
         serialized_params = append_param_if_exists(serialized_params, "order_by")
         serialized_params = append_param_if_exists(serialized_params, "where")
+        serialized_params = append_param_if_exists(serialized_params, "read_cache")
 
         serialized_params = serialized_params.strip(",")
 

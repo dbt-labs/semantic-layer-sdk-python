@@ -16,12 +16,14 @@ def test_serialize_query_params_complete_query() -> None:
             "limit": 1,
             "order_by": ["dim_c"],
             "where": ['{{ Dimension("metric_time").grain("month") }} >= \'2017-03-09\''],
+            "read_cache": False,
         }
     )
 
     expected = (
         'metrics=["a", "b"],group_by=["dim_c"],limit=1,order_by=["dim_c"],'
-        'where=["{{ Dimension(\\"metric_time\\").grain(\\"month\\") }} >= \'2017-03-09\'"]'
+        'where=["{{ Dimension(\\"metric_time\\").grain(\\"month\\") }} >= \'2017-03-09\'"],'
+        "read_cache=False"
     )
     assert params == expected
 
