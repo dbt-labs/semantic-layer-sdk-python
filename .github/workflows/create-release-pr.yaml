@@ -48,7 +48,10 @@ jobs:
           MESSAGE=$(cat ".changes/$VERSION.md")
 
           echo "version=$VERSION_NO_V" >> $GITHUB_OUTPUT
-          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$MESSAGE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
 
       - name: Create Pull Request
