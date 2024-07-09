@@ -6,6 +6,7 @@ from typing_extensions import Self, Unpack
 
 from dbtsl.api.adbc.client.base import BaseADBCClient
 from dbtsl.api.adbc.protocol import QueryParameters
+from dbtsl.api.shared.query_params import DimensionValuesQueryParameters
 
 
 class SyncADBCClient(BaseADBCClient):
@@ -49,6 +50,20 @@ class SyncADBCClient(BaseADBCClient):
     def query(self, **query_params: Unpack[QueryParameters]) -> pa.Table:
         """Query for a dataframe in the Semantic Layer."""
         query_sql = self.PROTOCOL.get_query_sql(query_params)
+
+        with self._conn.cursor() as cur:
+            try:
+                cur.execute(query_sql)
+            except Exception as err:
+                self._handle_error(err)
+
+            table = cur.fetch_arrow_table()
+
+        return table
+
+    def dimension_values(self, **query_params: Unpack[DimensionValuesQueryParameters]) -> pa.Table:
+        """Query for the possible values of a dimension."""
+        query_sql = self.PROTOCOL.get_dimension_values_sql(query_params)
 
         with self._conn.cursor() as cur:
             try:
