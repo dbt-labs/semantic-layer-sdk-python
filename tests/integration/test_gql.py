@@ -56,6 +56,16 @@ async def test_async_client_lists_metrics_dimensions_entities(async_client: Asyn
     assert entities == metrics[0].entities
 
 
+def test_sync_client_lists_saved_queries(sync_client: SyncGraphQLClient) -> None:
+    sqs = sync_client.saved_queries()
+    assert len(sqs) > 0
+
+
+async def test_async_client_lists_saved_queries(async_client: AsyncGraphQLClient) -> None:
+    sqs = await async_client.saved_queries()
+    assert len(sqs) > 0
+
+
 def test_sync_client_query_works(sync_client: SyncGraphQLClient) -> None:
     metrics = sync_client.metrics()
     assert len(metrics) > 0

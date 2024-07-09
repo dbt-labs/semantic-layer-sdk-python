@@ -8,6 +8,7 @@ from dbtsl.api.graphql.util import render_query
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.models import Dimension, Entity, Measure, Metric
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
+from dbtsl.models.saved_query import SavedQuery
 
 
 class JobStatusVariables(TypedDict):
@@ -168,6 +169,29 @@ class ListEntitiesOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
         return decode_to_dataclass(data["entities"], List[Entity])
 
 
+class ListSavedQueriesOperation(ProtocolOperation[EmptyVariables, List[SavedQuery]]):
+    """List all saved queries."""
+
+    @override
+    def get_request_text(self) -> str:
+        query = """
+        query getSavedQueries($environmentId: BigInt!) {
+            savedQueries(environmentId: $environmentId) {
+                ...&fragment
+            }
+        }
+        """
+        return render_query(query, SavedQuery.gql_fragments())
+
+    @override
+    def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
+        return {"environmentId": environment_id}
+
+    @override
+    def parse_response(self, data: Dict[str, Any]) -> List[SavedQuery]:
+        return decode_to_dataclass(data["savedQueries"], List[SavedQuery])
+
+
 class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
     """Create a query that will be processed asynchronously."""
 
@@ -253,5 +277,6 @@ class GraphQLProtocol:
     dimensions = ListDimensionsOperation()
     measures = ListMeasuresOperation()
     entities = ListEntitiesOperation()
+    saved_queries = ListSavedQueriesOperation()
     create_query = CreateQueryOperation()
     get_query_result = GetQueryResultOperation()

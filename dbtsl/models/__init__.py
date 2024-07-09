@@ -10,6 +10,7 @@ from .entity import Entity, EntityType
 from .measure import AggregationType, Measure
 from .metric import Metric, MetricType
 from .query import QueryResult
+from .saved_query import SavedQuery
 from .time_granularity import TimeGranularity
 
 # Only importing this so it registers aliases
@@ -26,5 +27,6 @@ __all__ = [
     "Measure",
     "Metric",
     "MetricType",
+    "SavedQuery",
     "TimeGranularity",
 ]
