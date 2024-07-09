@@ -57,7 +57,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
-          title: "version: ${{ steps.latest.outputs.output }}"
+          title: "version: ${{ steps.package-version.outputs.output }}"
           branch: release/${{ steps.package-version.outputs.version }}
           commit-message: |
             version: ${{ steps.package-version.outputs.version }}
