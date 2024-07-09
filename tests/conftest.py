@@ -1,7 +1,6 @@
-import asyncio
 import os
 from dataclasses import dataclass
-from typing import Callable, Iterator, Union, cast
+from typing import Callable, Union, cast
 
 import pytest
 from gql import Client, gql
@@ -72,15 +71,3 @@ class Credentials:
 @pytest.fixture(scope="session")
 def credentials() -> Credentials:
     return Credentials.from_env()
-
-
-@pytest.fixture(scope="session")
-def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
-    """Override pytest-asyncio's default `event_loop` fixture.
-
-    We add scope='session' to make all tests share the same event loop.
-    This avoids concurrency issues related to opening and closing sessions.
-    """
-    loop = asyncio.get_event_loop()
-    yield loop
-    loop.close()

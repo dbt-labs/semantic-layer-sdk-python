@@ -3,6 +3,7 @@ import io
 from unittest.mock import AsyncMock, MagicMock, call
 
 import pyarrow as pa
+import pytest
 from pytest_mock import MockerFixture
 
 from dbtsl.api.graphql.client.asyncio import AsyncGraphQLClient
@@ -80,6 +81,8 @@ async def test_async_query_multiple_pages(mocker: MockerFixture) -> None:
     assert result_table.equals(table, check_metadata=True)
 
 
+# avoid raising mock warning related to mocking a context manager
+@pytest.mark.filterwarnings("ignore::pytest_mock.PytestMockWarning")
 def test_sync_query_multiple_pages(mocker: MockerFixture) -> None:
     """Test that querying a dataframe with multiple pages works."""
     client = SyncGraphQLClient(server_host="test", environment_id=0, auth_token="test")
