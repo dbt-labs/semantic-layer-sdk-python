@@ -1,14 +1,19 @@
 import json
+from typing import Any, FrozenSet, Mapping
 
-from dbtsl.api.shared.query_params import QueryParameters
+from dbtsl.api.shared.query_params import (
+    DimensionValuesQueryParameters,
+    QueryParameters,
+)
 
 
 class ADBCProtocol:
     """The protocol for the Arrow Flight dataframe API."""
 
     @staticmethod
-    def _serialize_query_params(params: QueryParameters) -> str:
-        serialized_params = ""
+    def _serialize_params_dict(params: Mapping[str, Any], param_names: FrozenSet[str]) -> str:
+        param_names_sorted = list(param_names)
+        param_names_sorted.sort()
 
         def append_param_if_exists(p_str: str, p_name: str) -> str:
             p_value = params.get(p_name)
@@ -20,12 +25,9 @@ class ADBCProtocol:
                 p_str += f"{p_name}={dumped},"
             return p_str
 
-        serialized_params = append_param_if_exists(serialized_params, "metrics")
-        serialized_params = append_param_if_exists(serialized_params, "group_by")
-        serialized_params = append_param_if_exists(serialized_params, "limit")
-        serialized_params = append_param_if_exists(serialized_params, "order_by")
-        serialized_params = append_param_if_exists(serialized_params, "where")
-        serialized_params = append_param_if_exists(serialized_params, "read_cache")
+        serialized_params = ""
+        for param_name in param_names_sorted:
+            serialized_params = append_param_if_exists(serialized_params, param_name)
 
         serialized_params = serialized_params.strip(",")
 
@@ -34,5 +36,11 @@ class ADBCProtocol:
     @classmethod
     def get_query_sql(cls, params: QueryParameters) -> str:
         """Get the SQL that will be sent via Arrow Flight to the server based on query parameters."""
-        serialized_params = cls._serialize_query_params(params)
+        serialized_params = cls._serialize_params_dict(params, QueryParameters.__optional_keys__)
         return f"SELECT * FROM {{{{ semantic_layer.query({serialized_params}) }}}}"
+
+    @classmethod
+    def get_dimension_values_sql(cls, params: DimensionValuesQueryParameters) -> str:
+        """Get the SQL that will be sent via Arrow Flight to the server based on dimension values query parameters."""
+        serialized_params = cls._serialize_params_dict(params, DimensionValuesQueryParameters.__optional_keys__)
+        return f"SELECT * FROM {{{{ semantic_layer.dimension_values({serialized_params}) }}}}"

@@ -26,6 +26,10 @@ class SyncSemanticLayerClient:
         """List all the dimensions available for a given set of metrics."""
         ...
 
+    def dimension_values(self, metrics: List[str], group_by: str) -> List[str]:
+        """List all the possible values for one or multiple metrics and a single dimension."""
+        ...
+
     def measures(self, metrics: List[str]) -> List[Measure]:
         """List all the measures available for a given set of metrics."""
         ...

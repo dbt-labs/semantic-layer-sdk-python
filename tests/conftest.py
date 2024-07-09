@@ -71,3 +71,10 @@ class Credentials:
 @pytest.fixture(scope="session")
 def credentials() -> Credentials:
     return Credentials.from_env()
+
+
+# generic method of requesting client that will automatically run once for sync
+# and once for async
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+    if "client" in metafunc.fixturenames:
+        metafunc.parametrize("client", ["sync", "async"], indirect=True)

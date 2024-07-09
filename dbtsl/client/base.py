@@ -8,6 +8,9 @@ from dbtsl.api.graphql.client.base import BaseGraphQLClient, GraphQLClientFactor
 TGQLClient = TypeVar("TGQLClient", bound=BaseGraphQLClient)
 TADBCClient = TypeVar("TADBCClient", bound=BaseADBCClient)
 
+ADBC = "adbc"
+GRAPHQL = "graphql"
+
 
 class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
     """Base semantic layer client.
@@ -16,6 +19,16 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
     GraphQL and ADBC clients, whether they are sync or async. Concrete implementations
     of this class must be accompanied by a `.pyi` file for correct typing.
     """
+
+    _METHOD_MAP = {
+        "dimension_values": ADBC,
+        "query": ADBC,
+        "dimensions": GRAPHQL,
+        "entities": GRAPHQL,
+        "measures": GRAPHQL,
+        "metrics": GRAPHQL,
+        "saved_queries": GRAPHQL,
+    }
 
     def __init__(
         self,
@@ -35,6 +48,8 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             adbc_factory: class of the underlying ADBC client
         """
         self._has_session = False
+
+        self._method_map = dict(self.__class__._METHOD_MAP)
 
         self._gql = gql_factory(
             server_host=host,
@@ -59,7 +74,12 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
         if not self._has_session:
             raise ValueError(f"Cannot perform `{attr}`operation without opening a session first.")
 
-        target = self._adbc if attr == "query" else self._gql
+        target_str = self._method_map.get(attr, None)
+        if target_str is None:
+            raise AttributeError()
+
+        assert target_str in (ADBC, GRAPHQL)
+        target = self._gql if target_str == GRAPHQL else self._adbc
 
         attr_val = getattr(target, attr, None)
 
