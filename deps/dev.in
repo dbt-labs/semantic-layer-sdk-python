@@ -1,7 +1,0 @@
--r async.in
--r sync.in
--r test.in
-
-ruff
-basedpyright
-uv

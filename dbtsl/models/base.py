@@ -3,7 +3,7 @@ from dataclasses import dataclass, fields, is_dataclass
 from dataclasses import field as dc_field
 from functools import cache
 from types import MappingProxyType
-from typing import List, Set, Type, Union
+from typing import Any, List, Set, Type, Union
 from typing import get_args as get_type_args
 from typing import get_origin as get_type_origin
 
@@ -62,11 +62,11 @@ class GraphQLFragmentMixin:
     # If we do that, we need to modify this method to memoize what fragments were already created
     # so that we exit the recursion gracefully
     @staticmethod
-    def _get_fragments_for_field(type: Type, field_name: str) -> Union[str, List[GraphQLFragment]]:
+    def _get_fragments_for_field(type: Union[Type[Any], str], field_name: str) -> Union[str, List[GraphQLFragment]]:
         if inspect.isclass(type) and issubclass(type, GraphQLFragmentMixin):
             return type.gql_fragments()
 
-        if get_type_origin(type) == list:
+        if get_type_origin(type) is list:
             inner_type = get_type_args(type)[0]
             return GraphQLFragmentMixin._get_fragments_for_field(inner_type, field_name)
 
