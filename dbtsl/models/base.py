@@ -66,7 +66,9 @@ class GraphQLFragmentMixin:
         if inspect.isclass(type) and issubclass(type, GraphQLFragmentMixin):
             return type.gql_fragments()
 
-        if get_type_origin(type) is list:
+        type_origin = get_type_origin(type)
+        # Optional = Union[X, None]
+        if type_origin is list or type_origin is Union:
             inner_type = get_type_args(type)[0]
             return GraphQLFragmentMixin._get_fragments_for_field(inner_type, field_name)
 

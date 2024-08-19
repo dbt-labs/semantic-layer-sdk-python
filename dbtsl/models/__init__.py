@@ -10,8 +10,17 @@ from .entity import Entity, EntityType
 from .measure import AggregationType, Measure
 from .metric import Metric, MetricType
 from .query import QueryResult
-from .saved_query import SavedQuery
-from .time_granularity import TimeGranularity
+from .saved_query import (
+    Export,
+    ExportConfig,
+    ExportDestinationType,
+    SavedQuery,
+    SavedQueryGroupByParam,
+    SavedQueryMetricParam,
+    SavedQueryQueryParams,
+    SavedQueryWhereParam,
+)
+from .time import DatePart, TimeGranularity
 
 # Only importing this so it registers aliases
 _ = QueryResult
@@ -20,13 +29,22 @@ BaseModel._apply_aliases()
 
 __all__ = [
     "AggregationType",
+    "DatePart",
     "Dimension",
     "DimensionType",
     "Entity",
     "EntityType",
+    "Export",
+    "ExportConfig",
+    "ExportDestinationType",
     "Measure",
     "Metric",
     "MetricType",
     "SavedQuery",
+    "SavedQuery",
+    "SavedQueryGroupByParam",
+    "SavedQueryMetricParam",
+    "SavedQueryQueryParams",
+    "SavedQueryWhereParam",
     "TimeGranularity",
 ]
