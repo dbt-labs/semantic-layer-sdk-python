@@ -1,0 +1,3 @@
+kind: Features
+body: Add `SavedQueryQueryParam` list to `SavedQuery`
+time: 2024-08-19T13:03:27.820242+02:00

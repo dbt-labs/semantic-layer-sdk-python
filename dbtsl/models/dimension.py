@@ -3,7 +3,7 @@ from enum import Enum
 from typing import List, Optional
 
 from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
-from dbtsl.models.time_granularity import TimeGranularity
+from dbtsl.models.time import TimeGranularity
 
 
 class DimensionType(str, Enum):

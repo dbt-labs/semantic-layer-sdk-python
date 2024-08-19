@@ -15,3 +15,14 @@ class TimeGranularity(str, Enum):
     MONTH = "MONTH"
     QUARTER = "QUARTER"
     YEAR = "YEAR"
+
+
+class DatePart(str, Enum):
+    """Date part."""
+
+    DOY = "DOY"
+    DOW = "DOW"
+    DAY = "DAY"
+    MONTH = "MONTH"
+    QUARTER = "QUARTER"
+    YEAR = "YEAR"

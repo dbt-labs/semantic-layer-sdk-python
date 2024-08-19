@@ -6,7 +6,7 @@ from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
 from dbtsl.models.dimension import Dimension
 from dbtsl.models.entity import Entity
 from dbtsl.models.measure import Measure
-from dbtsl.models.time_granularity import TimeGranularity
+from dbtsl.models.time import TimeGranularity
 
 
 class MetricType(str, Enum):
