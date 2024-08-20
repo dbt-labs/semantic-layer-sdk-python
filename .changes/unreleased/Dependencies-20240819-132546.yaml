@@ -1,3 +1,0 @@
-kind: Dependencies
-body: Lower minimum PyArrow version to `12.0.0`
-time: 2024-08-19T13:25:46.2092+02:00
