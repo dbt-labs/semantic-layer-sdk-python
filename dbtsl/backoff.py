@@ -29,6 +29,6 @@ class ExponentialBackoff:
             curr_ms = int(time.time() * 1000)
             elapsed_ms = curr_ms - start_ms
             if elapsed_ms > self.timeout_ms:
-                raise TimeoutError()
+                raise TimeoutError(timeout_ms=self.timeout_ms)
 
             yield min(int(self.base_interval_ms * self.exp_factor**i), self.max_interval_ms)
