@@ -1,8 +1,8 @@
 from contextlib import AbstractAsyncContextManager
-from typing import AsyncIterator, List
+from typing import AsyncIterator, List, Optional
 
 import pyarrow as pa
-from typing_extensions import Self, Unpack
+from typing_extensions import Self, Unpack, overload
 
 from dbtsl.api.adbc.protocol import QueryParameters
 from dbtsl.models import Dimension, Entity, Measure, Metric, SavedQuery
@@ -14,12 +14,50 @@ class AsyncSemanticLayerClient:
         auth_token: str,
         host: str,
     ) -> None: ...
+    @overload
+    async def compile_sql(
+        self,
+        metrics: List[str],
+        group_by: Optional[List[str]] = None,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> str: ...
+    @overload
+    async def compile_sql(
+        self,
+        saved_query: str,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> str: ...
     async def compile_sql(self, **query_params: Unpack[QueryParameters]) -> str:
         """Get the compiled SQL that would be sent to the warehouse by a query."""
         ...
 
-    async def query(self, **query_params: Unpack[QueryParameters]) -> "pa.Table":
-        """Query the Semantic Layer for a metric data."""
+    @overload
+    async def query(
+        self,
+        metrics: List[str],
+        group_by: Optional[List[str]] = None,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> "pa.Table": ...
+    @overload
+    async def query(
+        self,
+        saved_query: str,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> "pa.Table": ...
+    async def query(self, **params: Unpack[QueryParameters]) -> "pa.Table":
+        """Query the Semantic Layer."""
         ...
 
     async def metrics(self) -> List[Metric]:

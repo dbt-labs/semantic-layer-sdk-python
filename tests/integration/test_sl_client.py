@@ -50,7 +50,7 @@ pytestmark = pytest.mark.asyncio(scope="module")
 
 # NOTE: grouping all these tests in one because they depend on each other, i.e
 # dimensions depends on metrics etc
-async def test_client_works_multiple(subtests: SubTests, client: BothClients) -> None:
+async def test_client_metadata(subtests: SubTests, client: BothClients) -> None:
     with subtests.test("metrics"):
         metrics = await maybe_await(client.metrics())
         assert len(metrics) > 0
@@ -78,7 +78,7 @@ async def test_client_works_multiple(subtests: SubTests, client: BothClients) ->
 
 
 @pytest.mark.parametrize("api", [ADBC, GRAPHQL])
-async def test_client_query_works(api: str, client: BothClients) -> None:
+async def test_client_query_adhoc(api: str, client: BothClients) -> None:
     client._method_map["query"] = api  # type: ignore
 
     metrics = await maybe_await(client.metrics())
@@ -93,7 +93,22 @@ async def test_client_query_works(api: str, client: BothClients) -> None:
     assert len(table) > 0
 
 
-async def test_client_compile_sql_works(client: BothClients) -> None:
+@pytest.mark.parametrize("api", [ADBC, GRAPHQL])
+async def test_client_query_saved_query(api: str, client: BothClients) -> None:
+    client._method_map["query"] = api  # type: ignore
+
+    metrics = await maybe_await(client.metrics())
+    assert len(metrics) > 0
+    table = await maybe_await(
+        client.query(
+            saved_query="order_metrics",
+            limit=1,
+        )
+    )
+    assert len(table) > 0
+
+
+async def test_client_compile_sql_adhoc_query(client: BothClients) -> None:
     metrics = await maybe_await(client.metrics())
     assert len(metrics) > 0
 
@@ -101,6 +116,20 @@ async def test_client_compile_sql_works(client: BothClients) -> None:
         client.compile_sql(
             metrics=[metrics[0].name],
             group_by=[metrics[0].dimensions[0].name],
+            limit=1,
+        )
+    )
+    assert len(sql) > 0
+    assert "SELECT" in sql
+
+
+async def test_client_compile_sql_saved_query(client: BothClients) -> None:
+    metrics = await maybe_await(client.metrics())
+    assert len(metrics) > 0
+
+    sql = await maybe_await(
+        client.compile_sql(
+            saved_query="order_metrics",
             limit=1,
         )
     )

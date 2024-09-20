@@ -5,7 +5,7 @@ from mashumaro.codecs.basic import decode as decode_to_dataclass
 from typing_extensions import NotRequired, override
 
 from dbtsl.api.graphql.util import render_query
-from dbtsl.api.shared.query_params import QueryParameters
+from dbtsl.api.shared.query_params import QueryParameters, validate_query_parameters
 from dbtsl.models import Dimension, Entity, Measure, Metric
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 from dbtsl.models.saved_query import SavedQuery
@@ -200,8 +200,9 @@ class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
         query = """
         mutation createQuery(
             $environmentId: BigInt!,
-            $metrics: [MetricInput!]!,
-            $groupBy: [GroupByInput!]!,
+            $savedQuery: String,
+            $metrics: [MetricInput!],
+            $groupBy: [GroupByInput!],
             $where: [WhereInput!]!,
             $orderBy: [OrderByInput!]!,
             $limit: Int,
@@ -209,6 +210,7 @@ class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
         ) {
             createQuery(
                 environmentId: $environmentId,
+                savedQuery: $savedQuery,
                 metrics: $metrics,
                 groupBy: $groupBy,
                 where: $where,
@@ -224,10 +226,13 @@ class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: QueryParameters) -> Dict[str, Any]:
+        # TODO: fix typing
+        validate_query_parameters(kwargs)  # type: ignore
         return {
             "environmentId": environment_id,
-            "metrics": [{"name": m} for m in kwargs.get("metrics", [])],
-            "groupBy": [{"name": g} for g in kwargs.get("group_by", [])],
+            "savedQuery": kwargs.get("saved_query", None),
+            "metrics": [{"name": m} for m in kwargs["metrics"]] if "metrics" in kwargs else None,
+            "groupBy": [{"name": g} for g in kwargs["group_by"]] if "group_by" in kwargs else None,
             "where": [{"sql": sql} for sql in kwargs.get("where", [])],
             "orderBy": [{"name": o} for o in kwargs.get("order_by", [])],
             "limit": kwargs.get("limit", None),
@@ -285,8 +290,9 @@ class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
         query = """
         mutation compileSql(
             $environmentId: BigInt!,
-            $metrics: [MetricInput!]!,
-            $groupBy: [GroupByInput!]!,
+            $savedQuery: String,
+            $metrics: [MetricInput!],
+            $groupBy: [GroupByInput!],
             $where: [WhereInput!]!,
             $orderBy: [OrderByInput!]!,
             $limit: Int,
@@ -294,6 +300,7 @@ class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
         ) {
             compileSql(
                 environmentId: $environmentId,
+                savedQuery: $savedQuery,
                 metrics: $metrics,
                 groupBy: $groupBy,
                 where: $where,
@@ -309,10 +316,13 @@ class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
 
     @override
     def get_request_variables(self, environment_id: int, **kwargs: QueryParameters) -> Dict[str, Any]:
+        # TODO: fix typing
+        validate_query_parameters(kwargs)  # type: ignore
         return {
             "environmentId": environment_id,
-            "metrics": [{"name": m} for m in kwargs.get("metrics", [])],
-            "groupBy": [{"name": g} for g in kwargs.get("group_by", [])],
+            "savedQuery": kwargs.get("saved_query", None),
+            "metrics": [{"name": m} for m in kwargs["metrics"]] if "metrics" in kwargs else None,
+            "groupBy": [{"name": g} for g in kwargs["group_by"]] if "group_by" in kwargs else None,
             "where": [{"sql": sql} for sql in kwargs.get("where", [])],
             "orderBy": [{"name": o} for o in kwargs.get("order_by", [])],
             "limit": kwargs.get("limit", None),

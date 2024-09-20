@@ -1,8 +1,8 @@
 from contextlib import AbstractContextManager
-from typing import Iterator, List
+from typing import Iterator, List, Optional
 
 import pyarrow as pa
-from typing_extensions import Self, Unpack
+from typing_extensions import Self, Unpack, overload
 
 from dbtsl.api.adbc.protocol import QueryParameters
 from dbtsl.models import Dimension, Entity, Measure, Metric, SavedQuery
@@ -14,12 +14,50 @@ class SyncSemanticLayerClient:
         auth_token: str,
         host: str,
     ) -> None: ...
+    @overload
+    def compile_sql(
+        self,
+        metrics: List[str],
+        group_by: Optional[List[str]] = None,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> str: ...
+    @overload
+    def compile_sql(
+        self,
+        saved_query: str,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> str: ...
     def compile_sql(self, **query_params: Unpack[QueryParameters]) -> str:
         """Get the compiled SQL that would be sent to the warehouse by a query."""
         ...
 
-    def query(self, **query_params: Unpack[QueryParameters]) -> "pa.Table":
-        """Query the Semantic Layer for a metric data."""
+    @overload
+    def query(
+        self,
+        metrics: List[str],
+        group_by: Optional[List[str]] = None,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> "pa.Table": ...
+    @overload
+    def query(
+        self,
+        saved_query: str,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> "pa.Table": ...
+    async def query(self, **params: Unpack[QueryParameters]) -> "pa.Table":
+        """Query the Semantic Layer."""
         ...
 
     def metrics(self) -> List[Metric]:

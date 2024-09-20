@@ -2,7 +2,7 @@ from contextlib import AbstractContextManager
 from typing import Iterator, List, Optional
 
 import pyarrow as pa
-from typing_extensions import Self, Unpack
+from typing_extensions import Self, Unpack, overload
 
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.models import (
@@ -44,10 +44,48 @@ class SyncGraphQLClient:
         """Get a list of all available saved queries."""
         ...
 
-    def compile_sql(self, **params: Unpack[QueryParameters]) -> str:
+    @overload
+    def compile_sql(
+        self,
+        metrics: List[str],
+        group_by: Optional[List[str]] = None,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> str: ...
+    @overload
+    def compile_sql(
+        self,
+        saved_query: str,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> str: ...
+    def compile_sql(self, **query_params: Unpack[QueryParameters]) -> str:
         """Get the compiled SQL that would be sent to the warehouse by a query."""
         ...
 
-    def query(self, **params: Unpack[QueryParameters]) -> "pa.Table":
+    @overload
+    def query(
+        self,
+        metrics: List[str],
+        group_by: Optional[List[str]] = None,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> "pa.Table": ...
+    @overload
+    def query(
+        self,
+        saved_query: str,
+        limit: Optional[int] = None,
+        order_by: Optional[List[str]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> "pa.Table": ...
+    async def query(self, **params: Unpack[QueryParameters]) -> "pa.Table":
         """Query the Semantic Layer."""
         ...
