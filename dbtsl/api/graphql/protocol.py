@@ -277,6 +277,53 @@ class GetQueryResultOperation(ProtocolOperation[GetQueryResultVariables, QueryRe
         return decode_to_dataclass(data["query"], QueryResult)
 
 
+class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
+    """Get the compiled SQL that would be sent to the warehouse by a query."""
+
+    @override
+    def get_request_text(self) -> str:
+        query = """
+        mutation compileSql(
+            $environmentId: BigInt!,
+            $metrics: [MetricInput!]!,
+            $groupBy: [GroupByInput!]!,
+            $where: [WhereInput!]!,
+            $orderBy: [OrderByInput!]!,
+            $limit: Int,
+            $readCache: Boolean,
+        ) {
+            compileSql(
+                environmentId: $environmentId,
+                metrics: $metrics,
+                groupBy: $groupBy,
+                where: $where,
+                orderBy: $orderBy,
+                limit: $limit,
+                readCache: $readCache,
+            ) {
+                sql
+            }
+        }
+        """
+        return query
+
+    @override
+    def get_request_variables(self, environment_id: int, **kwargs: QueryParameters) -> Dict[str, Any]:
+        return {
+            "environmentId": environment_id,
+            "metrics": [{"name": m} for m in kwargs.get("metrics", [])],
+            "groupBy": [{"name": g} for g in kwargs.get("group_by", [])],
+            "where": [{"sql": sql} for sql in kwargs.get("where", [])],
+            "orderBy": [{"name": o} for o in kwargs.get("order_by", [])],
+            "limit": kwargs.get("limit", None),
+            "readCache": kwargs.get("read_cache", True),
+        }
+
+    @override
+    def parse_response(self, data: Dict[str, Any]) -> str:
+        return data["compileSql"]["sql"]
+
+
 class GraphQLProtocol:
     """Holds the GraphQL implementation for each of method in the API.
 
@@ -291,3 +338,4 @@ class GraphQLProtocol:
     saved_queries = ListSavedQueriesOperation()
     create_query = CreateQueryOperation()
     get_query_result = GetQueryResultOperation()
+    compile_sql = CompileSqlOperation()

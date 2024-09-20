@@ -92,3 +92,18 @@ async def test_client_query_works(api: str, client: BothClients) -> None:
         )
     )
     assert len(table) > 0
+
+
+async def test_client_compile_sql_works(client: BothClients) -> None:
+    metrics = await maybe_await(client.metrics())
+    assert len(metrics) > 0
+
+    sql = await maybe_await(
+        client.compile_sql(
+            metrics=[metrics[0].name],
+            group_by=[metrics[0].dimensions[0].name],
+            limit=1,
+        )
+    )
+    assert len(sql) > 0
+    assert "SELECT" in sql

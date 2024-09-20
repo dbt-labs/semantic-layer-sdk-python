@@ -21,12 +21,13 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
     """
 
     _METHOD_MAP = {
+        "compile_sql": GRAPHQL,
         "dimension_values": ADBC,
-        "query": ADBC,
         "dimensions": GRAPHQL,
         "entities": GRAPHQL,
         "measures": GRAPHQL,
         "metrics": GRAPHQL,
+        "query": ADBC,
         "saved_queries": GRAPHQL,
     }
 

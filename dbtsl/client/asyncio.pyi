@@ -14,6 +14,10 @@ class AsyncSemanticLayerClient:
         auth_token: str,
         host: str,
     ) -> None: ...
+    async def compile_sql(self, **query_params: Unpack[QueryParameters]) -> str:
+        """Get the compiled SQL that would be sent to the warehouse by a query."""
+        ...
+
     async def query(self, **query_params: Unpack[QueryParameters]) -> "pa.Table":
         """Query the Semantic Layer for a metric data."""
         ...
