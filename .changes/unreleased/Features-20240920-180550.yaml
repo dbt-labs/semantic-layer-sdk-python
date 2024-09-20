@@ -1,0 +1,3 @@
+kind: Features
+body: '`compile_sql` method for getting the compiled SQL of a query'
+time: 2024-09-20T18:05:50.976574+02:00
