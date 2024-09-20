@@ -95,7 +95,7 @@ async def test_client_query_adhoc(api: str, client: BothClients) -> None:
 
 
 @pytest.mark.parametrize("api", [ADBC, GRAPHQL])
-async def test_client_query_saved_query_(api: str, client: BothClients) -> None:
+async def test_client_query_saved_query(api: str, client: BothClients) -> None:
     client._method_map["query"] = api  # type: ignore
 
     metrics = await maybe_await(client.metrics())
