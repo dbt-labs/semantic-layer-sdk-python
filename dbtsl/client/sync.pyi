@@ -42,7 +42,7 @@ class SyncSemanticLayerClient:
         """Get a list of all available entities for a given set of metrics."""
         ...
 
-    async def saved_queries(self) -> List[SavedQuery]:
+    def saved_queries(self) -> List[SavedQuery]:
         """Get a list of all available saved queries."""
         ...
 
