@@ -8,7 +8,7 @@ from ...conftest import QueryValidator
 def test_queries_are_valid(subtests: SubTests, validate_query: QueryValidator) -> None:
     """Test all GraphQL queries in `GraphQLProtocol` are valid against the server schema.
 
-    This test dynamically iterates over `GraphQLProtocol` sowhenever a new method is
+    This test dynamically iterates over `GraphQLProtocol` so whenever a new method is
     added it will get tested automatically.
     """
     prop_names = dir(GraphQLProtocol)

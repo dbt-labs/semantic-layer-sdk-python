@@ -1,10 +1,7 @@
 import json
 from typing import Any, FrozenSet, Mapping
 
-from dbtsl.api.shared.query_params import (
-    DimensionValuesQueryParameters,
-    QueryParameters,
-)
+from dbtsl.api.shared.query_params import DimensionValuesQueryParameters, QueryParameters, validate_query_parameters
 
 
 class ADBCProtocol:
@@ -36,6 +33,7 @@ class ADBCProtocol:
     @classmethod
     def get_query_sql(cls, params: QueryParameters) -> str:
         """Get the SQL that will be sent via Arrow Flight to the server based on query parameters."""
+        validate_query_parameters(params)
         serialized_params = cls._serialize_params_dict(params, QueryParameters.__optional_keys__)
         return f"SELECT * FROM {{{{ semantic_layer.query({serialized_params}) }}}}"
 

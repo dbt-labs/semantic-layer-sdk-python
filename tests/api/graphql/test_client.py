@@ -9,7 +9,6 @@ from pytest_mock import MockerFixture
 from dbtsl.api.graphql.client.asyncio import AsyncGraphQLClient
 from dbtsl.api.graphql.client.sync import SyncGraphQLClient
 from dbtsl.api.graphql.protocol import GraphQLProtocol, ProtocolOperation
-from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
 # The following 2 tests are copies of each other since testing the same sync/async functionality is
@@ -58,7 +57,7 @@ async def test_async_query_multiple_pages(mocker: MockerFixture) -> None:
     mocker.patch.object(gql_mock, "__aenter__", new_callable=AsyncMock)
     mocker.patch("dbtsl.api.graphql.client.asyncio.isinstance", return_value=True)
 
-    kwargs: QueryParameters = {"metrics": ["m1", "m2"], "group_by": ["gb"], "limit": 1}
+    kwargs = {"metrics": ["m1", "m2"], "group_by": ["gb"], "limit": 1}
     async with client.session():
         result_table = await client.query(**kwargs)
 
@@ -123,7 +122,7 @@ def test_sync_query_multiple_pages(mocker: MockerFixture) -> None:
     mocker.patch.object(gql_mock, "__aenter__")
     mocker.patch("dbtsl.api.graphql.client.sync.isinstance", return_value=True)
 
-    kwargs: QueryParameters = {"metrics": ["m1", "m2"], "group_by": ["gb"], "limit": 1}
+    kwargs = {"metrics": ["m1", "m2"], "group_by": ["gb"], "limit": 1}
 
     with client.session():
         result_table = client.query(**kwargs)
