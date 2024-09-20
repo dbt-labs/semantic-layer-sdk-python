@@ -28,7 +28,6 @@ class AsyncSemanticLayerClient:
     async def compile_sql(
         self,
         saved_query: str,
-        group_by: Optional[List[str]] = None,
         limit: Optional[int] = None,
         order_by: Optional[List[str]] = None,
         where: Optional[List[str]] = None,
@@ -52,7 +51,6 @@ class AsyncSemanticLayerClient:
     async def query(
         self,
         saved_query: str,
-        group_by: Optional[List[str]] = None,
         limit: Optional[int] = None,
         order_by: Optional[List[str]] = None,
         where: Optional[List[str]] = None,
