@@ -72,10 +72,9 @@ async def test_client_works_multiple(subtests: SubTests, client: BothClients) ->
         dim_values = await maybe_await(client.dimension_values(metrics=[metric.name], group_by=dimension.name))
         assert len(dim_values) > 0
 
-
-async def test_client_lists_saved_queries(client: BothClients) -> None:
-    sqs = await maybe_await(client.saved_queries())
-    assert len(sqs) > 0
+    with subtests.test("saved_queries"):
+        sqs = await maybe_await(client.saved_queries())
+        assert len(sqs) > 0
 
 
 @pytest.mark.parametrize("api", [ADBC, GRAPHQL])
