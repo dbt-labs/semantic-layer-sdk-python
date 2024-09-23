@@ -1,3 +1,0 @@
-kind: Fixes
-body: Fixed wrong annotation for `saved_queries` in sync client.
-time: 2024-09-20T20:25:58.362587+02:00
