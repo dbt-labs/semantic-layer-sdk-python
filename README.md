@@ -13,7 +13,7 @@ To install the SDK, you'll need to specify optional dependencies depending on wh
 pip install "dbt-sl-sdk[sync]"
 
 # Async installation
-pip install "dbt-sl-sdk[sync]"
+pip install "dbt-sl-sdk[async]"
 ```
 
 ## Usage
