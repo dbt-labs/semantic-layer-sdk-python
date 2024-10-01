@@ -3,6 +3,7 @@ from typing import AsyncIterator, Iterator, Union
 import pytest
 from pytest_subtests import SubTests
 
+from dbtsl import OrderByDimension
 from dbtsl.client.asyncio import AsyncSemanticLayerClient
 from dbtsl.client.base import ADBC, GRAPHQL
 from dbtsl.client.sync import SyncSemanticLayerClient
