@@ -87,7 +87,10 @@ async def test_client_query_adhoc(api: str, client: BothClients) -> None:
         client.query(
             metrics=[metrics[0].name],
             group_by=["metric_time"],
+            order_by=["metric_time"],
+            where=["1=1"],
             limit=1,
+            read_cache=True,
         )
     )
     assert len(table) > 0
@@ -102,7 +105,10 @@ async def test_client_query_saved_query(api: str, client: BothClients) -> None:
     table = await maybe_await(
         client.query(
             saved_query="order_metrics",
+            order_by=["metric_time"],
+            where=["1=1"],
             limit=1,
+            read_cache=True,
         )
     )
     assert len(table) > 0
@@ -116,7 +122,10 @@ async def test_client_compile_sql_adhoc_query(client: BothClients) -> None:
         client.compile_sql(
             metrics=[metrics[0].name],
             group_by=[metrics[0].dimensions[0].name],
+            order_by=[metrics[0].dimensions[0].name],
+            where=["1=1"],
             limit=1,
+            read_cache=True,
         )
     )
     assert len(sql) > 0
@@ -130,7 +139,10 @@ async def test_client_compile_sql_saved_query(client: BothClients) -> None:
     sql = await maybe_await(
         client.compile_sql(
             saved_query="order_metrics",
+            order_by=["metric_time"],
+            where=["1=1"],
             limit=1,
+            read_cache=True,
         )
     )
     assert len(sql) > 0
