@@ -6,6 +6,7 @@ from pytest_subtests import SubTests
 from dbtsl.client.asyncio import AsyncSemanticLayerClient
 from dbtsl.client.base import ADBC, GRAPHQL
 from dbtsl.client.sync import SyncSemanticLayerClient
+from dbtsl import OrderByDimension
 
 from ..conftest import Credentials
 from ..util import maybe_await
@@ -105,7 +106,7 @@ async def test_client_query_saved_query(api: str, client: BothClients) -> None:
     table = await maybe_await(
         client.query(
             saved_query="order_metrics",
-            order_by=["metric_time"],
+            order_by=[OrderByDimension(name="metric_time", grain=None)],
             where=["1=1"],
             limit=1,
             read_cache=True,
@@ -139,7 +140,7 @@ async def test_client_compile_sql_saved_query(client: BothClients) -> None:
     sql = await maybe_await(
         client.compile_sql(
             saved_query="order_metrics",
-            order_by=["metric_time"],
+            order_by=[OrderByDimension(name="metric_time", grain=None)],
             where=["1=1"],
             limit=1,
             read_cache=True,
