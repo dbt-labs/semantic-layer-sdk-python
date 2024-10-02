@@ -1,5 +1,5 @@
 from dbtsl.api.adbc.protocol import ADBCProtocol
-from dbtsl.api.shared.query_params import OrderByDimension, OrderByMetric
+from dbtsl.api.shared.query_params import OrderByGroupBy, OrderByMetric
 from dbtsl.models.time import TimeGranularity
 
 
@@ -16,18 +16,18 @@ def test_serialize_val_OrderByMetric() -> None:
     assert ADBCProtocol._serialize_val(OrderByMetric(name="m", descending=True)) == 'Metric("m").descending(True)'
 
 
-def test_serialize_val_OrderByDimension() -> None:
-    assert ADBCProtocol._serialize_val(OrderByDimension(name="m", grain=None, descending=False)) == 'Dimension("m")'
+def test_serialize_val_OrderByGroupBy() -> None:
+    assert ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain=None, descending=False)) == 'Dimension("m")'
     assert (
-        ADBCProtocol._serialize_val(OrderByDimension(name="m", grain=None, descending=True))
+        ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain=None, descending=True))
         == 'Dimension("m").descending(True)'
     )
     assert (
-        ADBCProtocol._serialize_val(OrderByDimension(name="m", grain=TimeGranularity.DAY, descending=False))
+        ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain=TimeGranularity.DAY, descending=False))
         == 'Dimension("m").grain("day")'
     )
     assert (
-        ADBCProtocol._serialize_val(OrderByDimension(name="m", grain=TimeGranularity.WEEK, descending=True))
+        ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain=TimeGranularity.WEEK, descending=True))
         == 'Dimension("m").grain("week").descending(True)'
     )
 
@@ -52,7 +52,7 @@ def test_serialize_query_params_complete_query() -> None:
             "metrics": ["a", "b"],
             "group_by": ["dim_c"],
             "limit": 1,
-            "order_by": [OrderByMetric(name="a"), OrderByDimension(name="dim_c", grain=None)],
+            "order_by": [OrderByMetric(name="a"), OrderByGroupBy(name="dim_c", grain=None)],
             "where": ['{{ Dimension("metric_time").grain("month") }} >= \'2017-03-09\''],
             "read_cache": False,
         },

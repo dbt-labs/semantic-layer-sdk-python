@@ -4,7 +4,7 @@ from typing import Any, List, Mapping
 
 from dbtsl.api.shared.query_params import (
     DimensionValuesQueryParameters,
-    OrderByDimension,
+    OrderByGroupBy,
     OrderByMetric,
     QueryParameters,
     validate_query_parameters,
@@ -29,7 +29,7 @@ class ADBCProtocol:
                 m += ".descending(True)"
             return m
 
-        if isinstance(val, OrderByDimension):
+        if isinstance(val, OrderByGroupBy):
             d = f'Dimension("{val.name}")'
             if val.grain:
                 grain_str = val.grain.name.lower()
