@@ -13,8 +13,8 @@ class OrderByMetric:
 
 
 @dataclass(frozen=True)
-class OrderByDimension:
-    """Spec for ordering by a dimension.
+class OrderByGroupBy:
+    """Spec for ordering by a group_by, i.e a dimension or an entity.
 
     Not specifying a grain will defer the grain choice to the server.
     """
@@ -24,7 +24,7 @@ class OrderByDimension:
     descending: bool = False
 
 
-OrderBySpec = Union[OrderByMetric, OrderByDimension]
+OrderBySpec = Union[OrderByMetric, OrderByGroupBy]
 
 
 class QueryParameters(TypedDict, total=False):
@@ -66,10 +66,10 @@ class SavedQueryQueryParametersStrict:
 
 
 def validate_order_by(
-    known_metrics: List[str], known_dimensions: List[str], clause: Union[OrderBySpec, str]
+    known_metrics: List[str], known_group_bys: List[str], clause: Union[OrderBySpec, str]
 ) -> OrderBySpec:
     """Validate an order by clause like `-metric_name`."""
-    if isinstance(clause, OrderByMetric) or isinstance(clause, OrderByDimension):
+    if isinstance(clause, OrderByMetric) or isinstance(clause, OrderByGroupBy):
         return clause
 
     descending = clause.startswith("-")
@@ -79,15 +79,15 @@ def validate_order_by(
     if clause in known_metrics:
         return OrderByMetric(name=clause, descending=descending)
 
-    if clause in known_dimensions or clause == "metric_time":
-        return OrderByDimension(name=clause, descending=descending, grain=None)
+    if clause in known_group_bys or clause == "metric_time":
+        return OrderByGroupBy(name=clause, descending=descending, grain=None)
 
     # TODO: make this error less strict when server supports order_by type inference.
     raise ValueError(
-        f"Cannot determine if the specified order_by clause ({clause}) is a metric or a dimension. "
+        f"Cannot determine if the specified order_by clause ({clause}) is a metric or a dimension/entity. "
         "If you're running an adhoc query, make sure the order_by is in `metrics` or `group_by`. "
         "If you're using saved queries, please explicitly specify what you want by using "
-        "`dbtsl.OrderByMetric` or `dbtsl.OrderByDimension` instead of a string."
+        "`dbtsl.OrderByMetric` or `dbtsl.OrderByGroupBy` instead of a string."
     )
 
 
@@ -107,13 +107,12 @@ def validate_query_parameters(
     if not is_saved_query and not is_adhoc_query:
         raise ValueError("You must specify one of: saved_query, metrics/group_by.")
 
+    order_by: Optional[List[OrderBySpec]] = None
     if "order_by" in params:
         known_metrics = params.get("metrics", [])
-        known_dimensions = params.get("group_by", [])
+        known_group_bys = params.get("group_by", [])
 
-        order_by = [validate_order_by(known_metrics, known_dimensions, clause) for clause in params["order_by"]]
-    else:
-        order_by = None
+        order_by = [validate_order_by(known_metrics, known_group_bys, clause) for clause in params["order_by"]]
 
     shared_params = {
         "limit": params.get("limit"),

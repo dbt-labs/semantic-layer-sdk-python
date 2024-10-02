@@ -7,7 +7,7 @@ from mashumaro.codecs.basic import decode
 from dbtsl.api.graphql.util import normalize_query
 from dbtsl.api.shared.query_params import (
     AdhocQueryParametersStrict,
-    OrderByDimension,
+    OrderByGroupBy,
     OrderByMetric,
     QueryParameters,
     SavedQueryQueryParametersStrict,
@@ -95,8 +95,8 @@ def test_validate_order_by_params_passthrough_OrderByMetric() -> None:
     assert r == i
 
 
-def test_validate_order_by_params_passthrough_OrderByDimension() -> None:
-    i = OrderByDimension(name="asdf", grain=None, descending=True)
+def test_validate_order_by_params_passthrough_OrderByGroupBy() -> None:
+    i = OrderByGroupBy(name="asdf", grain=None, descending=True)
     r = validate_order_by([], [], i)
     assert r == i
 
@@ -119,13 +119,18 @@ def test_validate_order_by_params_metric() -> None:
     )
 
 
-def test_validate_order_by_params_dimension() -> None:
+def test_validate_order_by_params_group_by() -> None:
     r = validate_order_by(["a"], ["b"], "b")
-    assert r == OrderByDimension(
+    assert r == OrderByGroupBy(
         name="b",
         grain=None,
         descending=False,
     )
+
+
+def test_validate_order_by_not_found() -> None:
+    with pytest.raises(ValueError):
+        validate_order_by(["a"], ["b"], "c")
 
 
 def test_validate_query_params_adhoc_query_valid() -> None:
