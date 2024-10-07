@@ -1,7 +1,5 @@
 # dbt Semantic Layer SDK for Python
 
-> 🧪 This library is still experimental and it's not feature-complete yet.
-
 A library for easily accessing [dbt's Semantic Layer](https://docs.getdbt.com/docs/use-dbt-semantic-layer/dbt-sl/) via Python.
 
 ## Installation
