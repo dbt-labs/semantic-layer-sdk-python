@@ -1,9 +1,13 @@
+import json
+
+
 class SemanticLayerError(RuntimeError):
     """Any errors related to the Semantic Layer inherit from this."""
 
     def __str__(self) -> str:
         """RuntimeError doesn't stringify itself by default, so we need to manually add this."""
-        return self.__class__.__name__
+        args_str = "" if len(self.args) == 0 else ", ".join(json.dumps(a) for a in self.args)
+        return f"{self.__class__.__name__}({args_str})"
 
     def __repr__(self) -> str:
         """RuntimeError doesn't stringify itself by default, so we need to manually add this."""
