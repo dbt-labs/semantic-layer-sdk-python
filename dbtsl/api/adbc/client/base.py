@@ -52,15 +52,15 @@ class BaseADBCClient:
     def _handle_error(self, err: Exception) -> None:
         if isinstance(err, ProgrammingError):
             if err.status_code in (AdbcStatusCode.UNAUTHENTICATED, AdbcStatusCode.UNAUTHORIZED):
-                raise AuthError(err.args)
+                raise AuthError(err.args) from err
 
             if err.status_code == AdbcStatusCode.INVALID_ARGUMENT:
-                raise QueryFailedError(err.args)
+                raise QueryFailedError(err.args) from err
 
             # TODO: timeouts are not implemented for ADBC
             # See: https://arrow.apache.org/adbc/current/driver/flight_sql.html#timeouts
             if err.status_code == AdbcStatusCode.TIMEOUT:
-                raise TimeoutError()
+                raise TimeoutError() from err
 
         raise err
 
