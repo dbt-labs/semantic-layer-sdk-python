@@ -5,7 +5,12 @@ from mashumaro.codecs.basic import decode as decode_to_dataclass
 from typing_extensions import NotRequired, override
 
 from dbtsl.api.graphql.util import render_query
-from dbtsl.api.shared.query_params import QueryParameters, validate_query_parameters
+from dbtsl.api.shared.query_params import (
+    AdhocQueryParametersStrict,
+    OrderByMetric,
+    QueryParameters,
+    validate_query_parameters,
+)
 from dbtsl.models import Dimension, Entity, Measure, Metric
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 from dbtsl.models.saved_query import SavedQuery
@@ -192,6 +197,42 @@ class ListSavedQueriesOperation(ProtocolOperation[EmptyVariables, List[SavedQuer
         return decode_to_dataclass(data["savedQueries"], List[SavedQuery])
 
 
+def get_query_request_variables(environment_id: int, params: QueryParameters) -> Dict[str, Any]:
+    """Get the GraphQL request variables for a given set of query parameters."""
+    strict_params = validate_query_parameters(params)  # type: ignore
+
+    shared_vars = {
+        "environmentId": environment_id,
+        "where": [{"sql": sql} for sql in strict_params.where] if strict_params.where is not None else None,
+        "orderBy": [
+            {"metric": {"name": clause.name}, "descending": clause.descending}
+            if isinstance(clause, OrderByMetric)
+            else {"groupBy": {"name": clause.name, "grain": clause.grain}, "descending": clause.descending}
+            for clause in strict_params.order_by
+        ]
+        if strict_params.order_by is not None
+        else None,
+        "limit": strict_params.limit,
+        "readCache": strict_params.read_cache,
+    }
+
+    if isinstance(strict_params, AdhocQueryParametersStrict):
+        return {
+            "savedQuery": None,
+            "metrics": [{"name": m} for m in strict_params.metrics],
+            "groupBy": [{"name": g} for g in strict_params.group_by] if strict_params.group_by is not None else None,
+            **shared_vars,
+        }
+
+    return {
+        "environmentId": environment_id,
+        "savedQuery": strict_params.saved_query,
+        "metrics": None,
+        "groupBy": None,
+        **shared_vars,
+    }
+
+
 class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
     """Create a query that will be processed asynchronously."""
 
@@ -227,17 +268,7 @@ class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
     @override
     def get_request_variables(self, environment_id: int, **kwargs: QueryParameters) -> Dict[str, Any]:
         # TODO: fix typing
-        validate_query_parameters(kwargs)  # type: ignore
-        return {
-            "environmentId": environment_id,
-            "savedQuery": kwargs.get("saved_query", None),
-            "metrics": [{"name": m} for m in kwargs["metrics"]] if "metrics" in kwargs else None,
-            "groupBy": [{"name": g} for g in kwargs["group_by"]] if "group_by" in kwargs else None,
-            "where": [{"sql": sql} for sql in kwargs.get("where", [])],
-            "orderBy": [{"name": o} for o in kwargs.get("order_by", [])],
-            "limit": kwargs.get("limit", None),
-            "readCache": kwargs.get("read_cache", True),
-        }
+        return get_query_request_variables(environment_id, kwargs)  # type: ignore
 
     @override
     def parse_response(self, data: Dict[str, Any]) -> QueryId:
@@ -317,17 +348,7 @@ class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
     @override
     def get_request_variables(self, environment_id: int, **kwargs: QueryParameters) -> Dict[str, Any]:
         # TODO: fix typing
-        validate_query_parameters(kwargs)  # type: ignore
-        return {
-            "environmentId": environment_id,
-            "savedQuery": kwargs.get("saved_query", None),
-            "metrics": [{"name": m} for m in kwargs["metrics"]] if "metrics" in kwargs else None,
-            "groupBy": [{"name": g} for g in kwargs["group_by"]] if "group_by" in kwargs else None,
-            "where": [{"sql": sql} for sql in kwargs.get("where", [])],
-            "orderBy": [{"name": o} for o in kwargs.get("order_by", [])],
-            "limit": kwargs.get("limit", None),
-            "readCache": kwargs.get("read_cache", True),
-        }
+        return get_query_request_variables(environment_id, kwargs)  # type: ignore
 
     @override
     def parse_response(self, data: Dict[str, Any]) -> str:

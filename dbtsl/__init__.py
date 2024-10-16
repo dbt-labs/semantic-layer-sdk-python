@@ -13,4 +13,6 @@ except ImportError:
 
     SemanticLayerClient = err_factory
 
-__all__ = ["SemanticLayerClient"]
+from dbtsl.api.shared.query_params import OrderByGroupBy, OrderByMetric
+
+__all__ = ["SemanticLayerClient", "OrderByMetric", "OrderByGroupBy"]
