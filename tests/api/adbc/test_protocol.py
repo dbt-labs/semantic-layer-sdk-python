@@ -30,6 +30,10 @@ def test_serialize_val_OrderByGroupBy() -> None:
         ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain=TimeGranularity.WEEK, descending=True))
         == 'Dimension("m").grain("week").descending(True)'
     )
+    assert (
+        ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain="custom_grain"))
+        == 'Dimension("m").grain("custom_grain")'
+    )
 
 
 def test_serialize_query_params_metrics() -> None:

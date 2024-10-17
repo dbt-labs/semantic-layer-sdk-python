@@ -3,7 +3,7 @@ from enum import Enum
 from typing import List, Optional
 
 from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
-from dbtsl.models.time import TimeGranularity
+from dbtsl.models.time import Grain
 
 
 class DimensionType(str, Enum):
@@ -24,4 +24,4 @@ class Dimension(BaseModel, GraphQLFragmentMixin):
     label: Optional[str]
     is_partition: bool
     expr: Optional[str]
-    queryable_granularities: List[TimeGranularity]
+    queryable_granularities: List[Grain]

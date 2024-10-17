@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional, TypedDict, Union
 
-from dbtsl.models.time import TimeGranularity
+from dbtsl.models.time import Grain
 
 
 @dataclass(frozen=True)
@@ -20,7 +20,7 @@ class OrderByGroupBy:
     """
 
     name: str
-    grain: Optional[TimeGranularity]
+    grain: Optional[Grain]
     descending: bool = False
 
 

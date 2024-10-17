@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 
 class TimeGranularity(str, Enum):
@@ -15,6 +16,10 @@ class TimeGranularity(str, Enum):
     MONTH = "MONTH"
     QUARTER = "QUARTER"
     YEAR = "YEAR"
+
+
+Grain = Union[TimeGranularity, str]
+"""Either a standard TimeGranularity or a custom grain."""
 
 
 class DatePart(str, Enum):

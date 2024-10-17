@@ -3,7 +3,7 @@ from enum import Enum
 from typing import List, Optional
 
 from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
-from dbtsl.models.time import DatePart, TimeGranularity
+from dbtsl.models.time import DatePart, Grain
 
 
 class ExportDestinationType(str, Enum):
@@ -42,7 +42,7 @@ class SavedQueryGroupByParam(BaseModel, GraphQLFragmentMixin):
     """The groupBy param of a saved query."""
 
     name: str
-    grain: Optional[TimeGranularity]
+    grain: Optional[Grain]
     date_part: Optional[DatePart]
 
 

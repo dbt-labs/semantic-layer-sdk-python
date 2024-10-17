@@ -20,7 +20,7 @@ from .saved_query import (
     SavedQueryQueryParams,
     SavedQueryWhereParam,
 )
-from .time import DatePart, TimeGranularity
+from .time import DatePart, Grain, TimeGranularity
 
 # Only importing this so it registers aliases
 _ = QueryResult
@@ -37,6 +37,7 @@ __all__ = [
     "Export",
     "ExportConfig",
     "ExportDestinationType",
+    "Grain",
     "Measure",
     "Metric",
     "MetricType",

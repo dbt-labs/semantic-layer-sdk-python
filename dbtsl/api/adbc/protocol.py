@@ -9,6 +9,7 @@ from dbtsl.api.shared.query_params import (
     QueryParameters,
     validate_query_parameters,
 )
+from dbtsl.models.time import TimeGranularity
 
 
 class ADBCProtocol:
@@ -32,7 +33,7 @@ class ADBCProtocol:
         if isinstance(val, OrderByGroupBy):
             d = f'Dimension("{val.name}")'
             if val.grain:
-                grain_str = val.grain.name.lower()
+                grain_str = val.grain.name.lower() if isinstance(val.grain, TimeGranularity) else val.grain.lower()
                 d += f'.grain("{grain_str}")'
             if val.descending:
                 d += ".descending(True)"
