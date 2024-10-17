@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from dataclasses import field as dc_field
 from enum import Enum
 from typing import List, Optional
 
@@ -37,12 +38,19 @@ class SavedQueryMetricParam(BaseModel, GraphQLFragmentMixin):
     name: str
 
 
+DEPRECATION_MSG = (
+    "Since the introduction of custom time granularities, `SavedQueryGroupByParam.grain` is deprecated. "
+    "Use `time_granularity` instead."
+)
+
+
 @dataclass(frozen=True)
 class SavedQueryGroupByParam(BaseModel, GraphQLFragmentMixin):
     """The groupBy param of a saved query."""
 
     name: str
-    grain: Optional[TimeGranularity]
+    grain: Optional[TimeGranularity] = dc_field(metadata={BaseModel.DEPRECATED: DEPRECATION_MSG})
+    time_granularity: Optional[str]
     date_part: Optional[DatePart]
 
 
