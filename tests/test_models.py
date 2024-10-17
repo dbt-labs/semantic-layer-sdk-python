@@ -1,8 +1,11 @@
+import warnings
 from dataclasses import dataclass
+from dataclasses import field as dc_field
 from typing import List
 
 import pytest
 from mashumaro.codecs.basic import decode
+from typing_extensions import override
 
 from dbtsl.api.graphql.util import normalize_query
 from dbtsl.api.shared.query_params import (
@@ -14,7 +17,7 @@ from dbtsl.api.shared.query_params import (
     validate_order_by,
     validate_query_parameters,
 )
-from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.base import BaseModel, DeprecatedMixin, GraphQLFragmentMixin
 from dbtsl.models.base import snake_case_to_camel_case as stc
 
 
@@ -31,7 +34,7 @@ def test_base_model_auto_alias() -> None:
     class SubModel(BaseModel):
         hello_world: str
 
-    BaseModel._apply_aliases()
+    BaseModel._register_subclasses()
 
     data = {
         "helloWorld": "asdf",
@@ -87,6 +90,48 @@ def test_graphql_fragment_mixin() -> None:
     assert b_fragment.name == "fragmentB"
     assert b_fragment.body == b_expect
     assert b_fragments[1] == a_fragment
+
+
+def test_DeprecatedMixin() -> None:
+    msg = "i am deprecated :("
+
+    class MyDeprecatedClass(DeprecatedMixin):
+        @override
+        @classmethod
+        def _deprecation_message(cls) -> str:
+            return msg
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+
+        _ = MyDeprecatedClass()
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
+        assert msg == str(w[0].message)
+
+
+def test_attr_deprecation_warning() -> None:
+    msg = "i am deprecated :("
+
+    @dataclass(frozen=True)
+    class MyClassWithDeprecatedField(BaseModel):
+        its_fine: bool = True
+        oh_no: bool = dc_field(default=False, metadata={BaseModel.DEPRECATED: msg})
+
+    BaseModel._register_subclasses()
+
+    m = MyClassWithDeprecatedField()
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+
+        _ = m.its_fine
+        assert len(w) == 0
+
+        _ = m.oh_no
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
+        assert msg == str(w[0].message)
 
 
 def test_validate_order_by_params_passthrough_OrderByMetric() -> None:

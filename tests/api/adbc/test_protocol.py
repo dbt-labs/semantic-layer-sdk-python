@@ -1,6 +1,5 @@
 from dbtsl.api.adbc.protocol import ADBCProtocol
 from dbtsl.api.shared.query_params import OrderByGroupBy, OrderByMetric
-from dbtsl.models.time import TimeGranularity
 
 
 def test_serialize_val_basic_values() -> None:
@@ -23,11 +22,11 @@ def test_serialize_val_OrderByGroupBy() -> None:
         == 'Dimension("m").descending(True)'
     )
     assert (
-        ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain=TimeGranularity.DAY, descending=False))
+        ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain="day", descending=False))
         == 'Dimension("m").grain("day")'
     )
     assert (
-        ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain=TimeGranularity.WEEK, descending=True))
+        ADBCProtocol._serialize_val(OrderByGroupBy(name="m", grain="week", descending=True))
         == 'Dimension("m").grain("week").descending(True)'
     )
 

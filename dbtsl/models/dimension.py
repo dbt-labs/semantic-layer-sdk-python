@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 
@@ -13,6 +13,12 @@ class DimensionType(str, Enum):
     TIME = "TIME"
 
 
+DEPRECATION_MSG = (
+    "Since the introduction of custom time granularities, `Dimension.queryable_granularities` is deprecated. "
+    "Use `queryable_time_granularities` instead."
+)
+
+
 @dataclass(frozen=True)
 class Dimension(BaseModel, GraphQLFragmentMixin):
     """A metric dimension."""
@@ -24,4 +30,5 @@ class Dimension(BaseModel, GraphQLFragmentMixin):
     label: Optional[str]
     is_partition: bool
     expr: Optional[str]
-    queryable_granularities: List[TimeGranularity]
+    queryable_granularities: List[TimeGranularity] = field(metadata={BaseModel.DEPRECATED: DEPRECATION_MSG})
+    queryable_time_granularities: List[str]
