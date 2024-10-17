@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Optional, TypedDict, Union
 
-from dbtsl.models.time import TimeGranularity
-
 
 @dataclass(frozen=True)
 class OrderByMetric:
@@ -20,7 +18,7 @@ class OrderByGroupBy:
     """
 
     name: str
-    grain: Optional[TimeGranularity]
+    grain: Optional[str]
     descending: bool = False
 
 

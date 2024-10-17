@@ -32,7 +32,7 @@ class ADBCProtocol:
         if isinstance(val, OrderByGroupBy):
             d = f'Dimension("{val.name}")'
             if val.grain:
-                grain_str = val.grain.name.lower()
+                grain_str = val.grain.lower()
                 d += f'.grain("{grain_str}")'
             if val.descending:
                 d += ".descending(True)"
