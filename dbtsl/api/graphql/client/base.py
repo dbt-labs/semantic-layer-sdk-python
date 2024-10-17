@@ -1,4 +1,5 @@
 import functools
+import warnings
 from abc import abstractmethod
 from typing import Any, Dict, Generic, Optional, Protocol, TypeVar, Union
 
@@ -102,10 +103,12 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         if op is None:
             raise AttributeError()
 
-        return functools.partial(
-            self._run,
-            op=op,
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            return functools.partial(
+                self._run,
+                op=op,
+            )
 
 
 TClient = TypeVar("TClient", bound=BaseGraphQLClient, covariant=True)
