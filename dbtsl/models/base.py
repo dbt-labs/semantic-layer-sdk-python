@@ -1,9 +1,10 @@
 import inspect
+import warnings
 from dataclasses import dataclass, fields, is_dataclass
 from dataclasses import field as dc_field
 from functools import cache
 from types import MappingProxyType
-from typing import Any, List, Set, Type, Union
+from typing import Any, ClassVar, Dict, List, Set, Type, Union
 from typing import get_args as get_type_args
 from typing import get_origin as get_type_origin
 
@@ -25,19 +26,55 @@ class BaseModel(DataClassDictMixin):
     Adds some functionality like automatically creating camelCase aliases.
     """
 
+    DEPRECATED: ClassVar[str] = "dbtsl_deprecated"
+
+    # Mapping of "subclass.field" to "deprecation reason"
+    _deprecated_fields: ClassVar[Dict[str, str]] = dict()
+
+    @staticmethod
+    def _get_deprecation_key(class_name: str, field_name: str) -> str:
+        return f"{class_name}.{field_name}"
+
+    @classmethod
+    def _warn_if_deprecated(cls, field_name: str) -> None:
+        key = BaseModel._get_deprecation_key(cls.__name__, field_name)
+        reason = BaseModel._deprecated_fields.get(key)
+        if reason is not None:
+            warnings.warn(reason, DeprecationWarning)
+
     class Config(BaseConfig):  # noqa: D106
         lazy_compilation = True
 
     @classmethod
-    def _apply_aliases(cls) -> None:
-        """Apply camelCase aliases to all subclasses."""
+    def _register_subclasses(cls) -> None:
+        """Process fields of all subclasses.
+
+        This will:
+        - Apply camelCase aliases
+        - Pre-populate the _deprecated_fields dict with the deprecated fields
+        """
         for subclass in cls.__subclasses__():
             assert is_dataclass(subclass), "Subclass of BaseModel must be dataclass"
 
             for field in fields(subclass):
                 camel_name = snake_case_to_camel_case(field.name)
                 if field.name != camel_name:
-                    field.metadata = MappingProxyType(field_options(alias=camel_name))
+                    opts = field_options(alias=camel_name)
+                    if field.metadata is not None:
+                        opts = {**opts, **field.metadata}
+                    field.metadata = MappingProxyType(opts)
+
+                if cls.DEPRECATED in field.metadata:
+                    reason = field.metadata[cls.DEPRECATED]
+                    key = BaseModel._get_deprecation_key(subclass.__name__, field.name)
+                    cls._deprecated_fields[key] = reason
+
+    def __getattribute__(self, name: str) -> Any:  # noqa: D105
+        v = object.__getattribute__(self, name)
+        if not name.startswith("__") and not callable(v):
+            self._warn_if_deprecated(name)
+
+        return v
 
 
 @dataclass(frozen=True, eq=True)

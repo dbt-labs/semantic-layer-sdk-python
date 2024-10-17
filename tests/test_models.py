@@ -1,4 +1,6 @@
+import warnings
 from dataclasses import dataclass
+from dataclasses import field as dc_field
 from typing import List
 
 import pytest
@@ -31,7 +33,7 @@ def test_base_model_auto_alias() -> None:
     class SubModel(BaseModel):
         hello_world: str
 
-    BaseModel._apply_aliases()
+    BaseModel._register_subclasses()
 
     data = {
         "helloWorld": "asdf",
@@ -87,6 +89,30 @@ def test_graphql_fragment_mixin() -> None:
     assert b_fragment.name == "fragmentB"
     assert b_fragment.body == b_expect
     assert b_fragments[1] == a_fragment
+
+
+def test_deprecation_warning() -> None:
+    msg = "i am deprecated :("
+
+    @dataclass(frozen=True)
+    class MyClassWithDeprecatedField(BaseModel):
+        its_fine: bool = True
+        oh_no: bool = dc_field(default=False, metadata={BaseModel.DEPRECATED: msg})
+
+    BaseModel._register_subclasses()
+
+    m = MyClassWithDeprecatedField()
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+
+        _ = m.its_fine
+        assert len(w) == 0
+
+        _ = m.oh_no
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
+        assert msg == str(w[0].message)
 
 
 def test_validate_order_by_params_passthrough_OrderByMetric() -> None:

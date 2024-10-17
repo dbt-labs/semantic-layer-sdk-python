@@ -25,7 +25,7 @@ from .time import DatePart, TimeGranularity
 # Only importing this so it registers aliases
 _ = QueryResult
 
-BaseModel._apply_aliases()
+BaseModel._register_subclasses()
 
 __all__ = [
     "AggregationType",
