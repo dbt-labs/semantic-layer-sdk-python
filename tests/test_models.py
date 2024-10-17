@@ -5,6 +5,7 @@ from typing import List
 
 import pytest
 from mashumaro.codecs.basic import decode
+from typing_extensions import override
 
 from dbtsl.api.graphql.util import normalize_query
 from dbtsl.api.shared.query_params import (
@@ -16,7 +17,7 @@ from dbtsl.api.shared.query_params import (
     validate_order_by,
     validate_query_parameters,
 )
-from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.base import BaseModel, DeprecatedMixin, GraphQLFragmentMixin
 from dbtsl.models.base import snake_case_to_camel_case as stc
 
 
@@ -91,7 +92,25 @@ def test_graphql_fragment_mixin() -> None:
     assert b_fragments[1] == a_fragment
 
 
-def test_deprecation_warning() -> None:
+def test_DeprecatedMixin() -> None:
+    msg = "i am deprecated :("
+
+    class MyDeprecatedClass(DeprecatedMixin):
+        @override
+        @classmethod
+        def _deprecation_message(cls) -> str:
+            return msg
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+
+        _ = MyDeprecatedClass()
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
+        assert msg == str(w[0].message)
+
+
+def test_attr_deprecation_warning() -> None:
     msg = "i am deprecated :("
 
     @dataclass(frozen=True)

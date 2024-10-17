@@ -77,6 +77,19 @@ class BaseModel(DataClassDictMixin):
         return v
 
 
+class DeprecatedMixin:
+    """Add this to any deprecated model."""
+
+    @classmethod
+    def _deprecation_message(cls) -> str:
+        """The deprecation message that will get displayed."""
+        return f"{cls.__name__} is deprecated"
+
+    def __init__(self, *args, **kwargs) -> None:  # noqa: D107
+        warnings.warn(self._deprecation_message(), DeprecationWarning)
+        super(DeprecatedMixin, self).__init__()
+
+
 @dataclass(frozen=True, eq=True)
 class GraphQLFragment:
     """Represent a model as a GraphQL fragment."""
