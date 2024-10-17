@@ -1,3 +1,4 @@
+# pyright: reportUnusedImport=false
 try:
     from dbtsl.client.asyncio import AsyncSemanticLayerClient
 except ImportError:
@@ -11,6 +12,7 @@ except ImportError:
 
     AsyncSemanticLayerClient = err_factory
 
+import dbtsl.models  # noqa: F401
 
 __all__ = [
     "AsyncSemanticLayerClient",

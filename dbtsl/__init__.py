@@ -1,3 +1,4 @@
+# pyright: reportUnusedImport=false
 try:
     from dbtsl.client.sync import SyncSemanticLayerClient
 
@@ -13,6 +14,7 @@ except ImportError:
 
     SemanticLayerClient = err_factory
 
+import dbtsl.models  # noqa: F401
 from dbtsl.api.shared.query_params import OrderByGroupBy, OrderByMetric
 
 __all__ = ["SemanticLayerClient", "OrderByMetric", "OrderByGroupBy"]
