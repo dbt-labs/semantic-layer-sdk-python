@@ -56,6 +56,15 @@ class GraphQLFragmentMixin:
         """The model's name in the GraphQL schema. Defaults to same as class name."""
         return cls.__name__
 
+    @classmethod
+    def extra_gql_fields(cls) -> List[str]:
+        """Any extra GraphQL fields that the mixin requires.
+
+        This can be paired with `dataclasses.InitVar` to create fields that are queried via GraphQL
+        and passed into `__post_init__`, but are not a part of the final dataclass object.
+        """
+        return []
+
     # NOTE: this will overflow the stack if we add any circular dependencies in our GraphQL schema, like
     # Metric -> Dimension -> Metric -> Dimension ...
     #
@@ -85,9 +94,13 @@ class GraphQLFragmentMixin:
         gql_model_name = cls.gql_model_name()
         fragment_name = f"fragment{cls.__name__}"
 
+        # NOTE: for some reason MyPy and pyright freak out when calling `extra_gql_fields` from
+        # `cls` after this assertion, even though it's guaranteed the method exists. If we proxy
+        # it through this `cls_ref` variable then they stop complaining
+        ref = cls
         assert is_dataclass(cls), "Subclass of GraphQLFragmentMixin must be dataclass"
 
-        query_elements: List[str] = []
+        query_elements: List[str] = ref.extra_gql_fields()
         dependencies: Set[GraphQLFragment] = set()
         for field in fields(cls):
             frag_or_field = GraphQLFragmentMixin._get_fragments_for_field(field.type, field.name)

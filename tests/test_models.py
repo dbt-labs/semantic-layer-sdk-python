@@ -3,6 +3,7 @@ from typing import List
 
 import pytest
 from mashumaro.codecs.basic import decode
+from typing_extensions import override
 
 from dbtsl.api.graphql.util import normalize_query
 from dbtsl.api.shared.query_params import (
@@ -16,6 +17,9 @@ from dbtsl.api.shared.query_params import (
 )
 from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
 from dbtsl.models.base import snake_case_to_camel_case as stc
+from dbtsl.models.dimension import Dimension, DimensionType
+from dbtsl.models.metric import Metric, MetricType
+from dbtsl.models.time import TimeGranularity
 
 
 def test_snake_case_to_camel_case() -> None:
@@ -56,6 +60,11 @@ def test_graphql_fragment_mixin() -> None:
         a: A
         many_a: List[A]
 
+        @override
+        @classmethod
+        def extra_gql_fields(cls) -> List[str]:
+            return ["myExtraGqlField"]
+
     a_fragments = A.gql_fragments()
     assert len(a_fragments) == 1
     a_fragment = a_fragments[0]
@@ -74,6 +83,7 @@ def test_graphql_fragment_mixin() -> None:
 
     b_expect = normalize_query("""
     fragment fragmentB on B {
+        myExtraGqlField
         helloWorld
         baz
         a {
@@ -188,3 +198,34 @@ def test_validate_query_params_no_query() -> None:
     p: QueryParameters = {"limit": 1, "where": ["1=1"], "order_by": ["a"], "read_cache": False}
     with pytest.raises(ValueError):
         validate_query_parameters(p)
+
+
+def test_Metric_custom_granularity() -> None:
+    m = Metric(
+        name="metric",
+        description="my metric",
+        label="lala",
+        type=MetricType.SIMPLE,
+        dimensions=[],
+        entities=[],
+        measures=[],
+        queryable_granularities=[TimeGranularity.DAY, TimeGranularity.WEEK],
+        queryable_time_granilarities=["custom_grain"],
+        requires_metric_time=True,
+    )
+    assert m.queryable_granularities == [TimeGranularity.DAY, TimeGranularity.WEEK, "custom_grain"]
+
+
+def test_Dimension_custom_granularity() -> None:
+    d = Dimension(
+        name="dimension",
+        qualified_name="full_name__dimension",
+        description="my dimension",
+        label="lala",
+        type=DimensionType.TIME,
+        is_partition=True,
+        expr="a - b",
+        queryable_granularities=[TimeGranularity.DAY, TimeGranularity.WEEK],
+        queryable_time_granilarities=["custom_grain"],
+    )
+    assert d.queryable_granularities == [TimeGranularity.DAY, TimeGranularity.WEEK, "custom_grain"]
