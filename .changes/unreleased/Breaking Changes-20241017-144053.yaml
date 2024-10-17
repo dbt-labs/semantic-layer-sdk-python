@@ -1,0 +1,3 @@
+kind: Breaking Changes
+body: '`Dimension` and `Metric`''s `queryable_granularities` can now contain strings that correspond to custom grains. Elements can still be `TimeGranularity`, though'
+time: 2024-10-17T14:40:53.023434+02:00
