@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 
@@ -19,6 +19,12 @@ class MetricType(str, Enum):
     CONVERSION = "CONVERSION"
 
 
+QUERYABLE_GRANULARITIES_DEPRECATION = (
+    "Since the introduction of custom time granularities, `Metric.queryable_granularities` is deprecated. "
+    "Use `queryable_time_granularities` instead."
+)
+
+
 @dataclass(frozen=True)
 class Metric(BaseModel, GraphQLFragmentMixin):
     """A metric."""
@@ -29,6 +35,9 @@ class Metric(BaseModel, GraphQLFragmentMixin):
     dimensions: List[Dimension]
     measures: List[Measure]
     entities: List[Entity]
-    queryable_granularities: List[TimeGranularity]
+    queryable_granularities: List[TimeGranularity] = field(
+        metadata={BaseModel.DEPRECATED: QUERYABLE_GRANULARITIES_DEPRECATION}
+    )
+    queryable_time_granularities: List[str]
     label: str
     requires_metric_time: bool

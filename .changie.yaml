@@ -8,7 +8,9 @@ kindFormat: '### {{.Kind}}'
 changeFormat: '* {{.Body}}'
 kinds:
   - label: Breaking Changes
-    auto: major
+    auto: minor
+  - label: Deprecations
+    auto: minor
   - label: Features
     auto: minor
   - label: Fixes
