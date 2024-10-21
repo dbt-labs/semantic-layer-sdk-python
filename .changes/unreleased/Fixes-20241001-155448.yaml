@@ -1,3 +1,0 @@
-kind: Fixes
-body: Order by for `compile_sql` now works as expected
-time: 2024-10-01T15:54:48.740022+02:00

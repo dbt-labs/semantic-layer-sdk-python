@@ -1,3 +1,0 @@
-kind: Deprecations
-body: Deprecate `TimeGranularity` enum and all other fields that used it
-time: 2024-10-17T16:31:58.091095+02:00
