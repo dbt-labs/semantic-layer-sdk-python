@@ -1,3 +1,0 @@
-kind: Breaking Changes
-body: '`order_by` clause of queries using saved queries no longer support string inputs and require explicit `OrderByMetric` or `OrderByGroupBy`'
-time: 2024-10-01T16:09:46.752151+02:00
