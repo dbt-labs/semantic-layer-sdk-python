@@ -223,6 +223,15 @@ def test_validate_query_params_adhoc_query_no_metrics() -> None:
         validate_query_parameters(p)
 
 
+def test_validate_query_params_saved_query_group_by() -> None:
+    p: QueryParameters = {
+        "saved_query": "sq",
+        "group_by": ["a", "b"],
+    }
+    with pytest.raises(ValueError):
+        validate_query_parameters(p)
+
+
 def test_validate_query_params_adhoc_and_saved_query() -> None:
     p: QueryParameters = {"metrics": ["a", "b"], "group_by": ["a", "b"], "saved_query": "a"}
     with pytest.raises(ValueError):
