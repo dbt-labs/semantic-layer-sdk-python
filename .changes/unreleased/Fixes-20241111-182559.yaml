@@ -1,0 +1,3 @@
+kind: Fixes
+body: Fixes issue with `orderBy` and `where` when going via GraphQL
+time: 2024-11-11T18:25:59.874757+01:00
