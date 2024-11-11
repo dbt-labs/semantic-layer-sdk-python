@@ -207,7 +207,7 @@ def get_query_request_variables(environment_id: int, params: QueryParameters) ->
         "orderBy": [
             {"metric": {"name": clause.name}, "descending": clause.descending}
             if isinstance(clause, OrderByMetric)
-            else {"groupBy": {"name": clause.name, "grain": clause.grain}, "descending": clause.descending}
+            else {"groupBy": {"name": clause.name, "timeGranularity": clause.grain}, "descending": clause.descending}
             for clause in strict_params.order_by
         ]
         if strict_params.order_by is not None
@@ -244,8 +244,8 @@ class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
             $savedQuery: String,
             $metrics: [MetricInput!],
             $groupBy: [GroupByInput!],
-            $where: [WhereInput!]!,
-            $orderBy: [OrderByInput!]!,
+            $where: [WhereInput!],
+            $orderBy: [OrderByInput!],
             $limit: Int,
             $readCache: Boolean,
         ) {
@@ -324,8 +324,8 @@ class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
             $savedQuery: String,
             $metrics: [MetricInput!],
             $groupBy: [GroupByInput!],
-            $where: [WhereInput!]!,
-            $orderBy: [OrderByInput!]!,
+            $where: [WhereInput!],
+            $orderBy: [OrderByInput!],
             $limit: Int,
             $readCache: Boolean,
         ) {

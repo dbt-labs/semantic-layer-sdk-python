@@ -1,9 +1,10 @@
 import os
 from dataclasses import dataclass
-from typing import Callable, Union, cast
+from typing import Any, Callable, Dict, Union, cast
 
 import pytest
 from gql import Client, gql
+from gql.utilities.serialize_variable_values import serialize_variable_values
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -29,17 +30,24 @@ def server_schema(server_schema_path: str) -> str:
     return schema_str
 
 
-QueryValidator = Callable[[str], None]
+QueryValidator = Callable[[str, Dict[str, None]], None]
 
 
 @pytest.fixture(scope="session")
 def validate_query(server_schema: str) -> QueryValidator:
-    """Returns a validator function which ensures the query is valid against the server schema."""
+    """Returns a validator function which ensures the query and its variables are valid against the server schema."""
     gql_client = Client(schema=server_schema)
 
-    def validator(query_str: str) -> None:
+    def validator(query_str: str, variables: Dict[str, Any]) -> None:
+        assert gql_client.schema is not None
+
         query_doc = gql(query_str)
         gql_client.validate(document=query_doc)
+        serialize_variable_values(
+            gql_client.schema,
+            query_doc,
+            variables,
+        )
 
     return validator
 

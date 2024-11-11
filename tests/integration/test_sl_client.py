@@ -3,12 +3,13 @@ from typing import AsyncIterator, Iterator, Union
 import pytest
 from pytest_subtests import SubTests
 
-from dbtsl import OrderByGroupBy
+from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.client.asyncio import AsyncSemanticLayerClient
 from dbtsl.client.base import ADBC, GRAPHQL
 from dbtsl.client.sync import SyncSemanticLayerClient
 
 from ..conftest import Credentials
+from ..query_test_cases import TEST_QUERIES
 from ..util import maybe_await
 
 BothClients = Union[SyncSemanticLayerClient, AsyncSemanticLayerClient]
@@ -79,72 +80,17 @@ async def test_client_metadata(subtests: SubTests, client: BothClients) -> None:
 
 
 @pytest.mark.parametrize("api", [ADBC, GRAPHQL])
-async def test_client_query_adhoc(api: str, client: BothClients) -> None:
+@pytest.mark.parametrize("query", TEST_QUERIES)
+async def test_client_query(api: str, query: QueryParameters, client: BothClients) -> None:
     client._method_map["query"] = api  # type: ignore
-
-    metrics = await maybe_await(client.metrics())
-    assert len(metrics) > 0
-    table = await maybe_await(
-        client.query(
-            metrics=[metrics[0].name],
-            group_by=["metric_time"],
-            order_by=["metric_time"],
-            where=["1=1"],
-            limit=1,
-            read_cache=True,
-        )
-    )
+    # TODO: fix typing on client.query
+    table = await maybe_await(client.query(**query))  # type: ignore
     assert len(table) > 0
 
 
-@pytest.mark.parametrize("api", [ADBC, GRAPHQL])
-async def test_client_query_saved_query(api: str, client: BothClients) -> None:
-    client._method_map["query"] = api  # type: ignore
-
-    metrics = await maybe_await(client.metrics())
-    assert len(metrics) > 0
-    table = await maybe_await(
-        client.query(
-            saved_query="order_metrics",
-            order_by=[OrderByGroupBy(name="metric_time", grain=None)],
-            where=["1=1"],
-            limit=1,
-            read_cache=True,
-        )
-    )
-    assert len(table) > 0
-
-
-async def test_client_compile_sql_adhoc_query(client: BothClients) -> None:
-    metrics = await maybe_await(client.metrics())
-    assert len(metrics) > 0
-
-    sql = await maybe_await(
-        client.compile_sql(
-            metrics=[metrics[0].name],
-            group_by=[metrics[0].dimensions[0].name],
-            order_by=[metrics[0].dimensions[0].name],
-            where=["1=1"],
-            limit=1,
-            read_cache=True,
-        )
-    )
-    assert len(sql) > 0
-    assert "SELECT" in sql
-
-
-async def test_client_compile_sql_saved_query(client: BothClients) -> None:
-    metrics = await maybe_await(client.metrics())
-    assert len(metrics) > 0
-
-    sql = await maybe_await(
-        client.compile_sql(
-            saved_query="order_metrics",
-            order_by=[OrderByGroupBy(name="metric_time", grain=None)],
-            where=["1=1"],
-            limit=1,
-            read_cache=True,
-        )
-    )
+@pytest.mark.parametrize("query", TEST_QUERIES)
+async def test_client_compile_sql_adhoc_query(query: QueryParameters, client: BothClients) -> None:
+    # TODO: fix typing on client.compile_sql
+    sql = await maybe_await(client.compile_sql(**query))  # type: ignore
     assert len(sql) > 0
     assert "SELECT" in sql
