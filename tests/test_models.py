@@ -239,6 +239,6 @@ def test_validate_query_params_adhoc_and_saved_query() -> None:
 
 
 def test_validate_query_params_no_query() -> None:
-    p: QueryParameters = {"limit": 1, "where": ["1=1"], "order_by": ["a"], "read_cache": False}
+    p: QueryParameters = {"group_by": ["gb"], "limit": 1, "where": ["1=1"], "order_by": ["a"], "read_cache": False}
     with pytest.raises(ValueError):
         validate_query_parameters(p)
