@@ -178,7 +178,7 @@ def test_validate_order_by_not_found() -> None:
         validate_order_by(["a"], ["b"], "c")
 
 
-def test_validate_query_params_adhoc_query_valid() -> None:
+def test_validate_query_params_adhoc_query_valid_metrics_and_groupby() -> None:
     p: QueryParameters = {
         "metrics": ["a", "b"],
         "group_by": ["c", "d"],
@@ -192,6 +192,18 @@ def test_validate_query_params_adhoc_query_valid() -> None:
     assert r.metrics == ["a", "b"]
     assert r.group_by == ["c", "d"]
     assert r.order_by == [OrderByMetric(name="a")]
+    assert r.where == ["1=1"]
+    assert r.limit == 1
+    assert not r.read_cache
+
+
+def test_validate_query_params_adhoc_query_valid_only_groupby() -> None:
+    p: QueryParameters = {"group_by": ["gb"], "limit": 1, "where": ["1=1"], "order_by": ["gb"], "read_cache": False}
+    r = validate_query_parameters(p)
+    assert isinstance(r, AdhocQueryParametersStrict)
+    assert r.metrics is None
+    assert r.group_by == ["gb"]
+    assert r.order_by == [OrderByGroupBy(name="gb", grain=None)]
     assert r.where == ["1=1"]
     assert r.limit == 1
     assert not r.read_cache
@@ -214,15 +226,6 @@ def test_validate_query_params_saved_query_valid() -> None:
     assert not r.read_cache
 
 
-def test_validate_query_params_adhoc_query_no_metrics() -> None:
-    p: QueryParameters = {
-        "metrics": [],
-        "group_by": ["a", "b"],
-    }
-    with pytest.raises(ValueError):
-        validate_query_parameters(p)
-
-
 def test_validate_query_params_saved_query_group_by() -> None:
     p: QueryParameters = {
         "saved_query": "sq",
@@ -239,6 +242,6 @@ def test_validate_query_params_adhoc_and_saved_query() -> None:
 
 
 def test_validate_query_params_no_query() -> None:
-    p: QueryParameters = {"group_by": ["gb"], "limit": 1, "where": ["1=1"], "order_by": ["a"], "read_cache": False}
+    p: QueryParameters = {"limit": 1, "where": ["1=1"], "order_by": ["a"], "read_cache": False}
     with pytest.raises(ValueError):
         validate_query_parameters(p)

@@ -44,7 +44,7 @@ class QueryParameters(TypedDict, total=False):
 class AdhocQueryParametersStrict:
     """The parameters of an adhoc query, strictly validated."""
 
-    metrics: List[str]
+    metrics: Optional[List[str]]
     group_by: Optional[List[str]]
     limit: Optional[int]
     order_by: Optional[List[OrderBySpec]]
@@ -125,11 +125,8 @@ def validate_query_parameters(
             **shared_params,
         )
 
-    if "metrics" not in params or len(params["metrics"]) == 0:
-        raise ValueError("You need to specify at least one metric.")
-
     return AdhocQueryParametersStrict(
-        metrics=params["metrics"],
+        metrics=params.get("metrics"),
         group_by=params.get("group_by"),
         **shared_params,
     )
