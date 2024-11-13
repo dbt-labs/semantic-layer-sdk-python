@@ -27,6 +27,15 @@ class AsyncSemanticLayerClient:
     @overload
     async def compile_sql(
         self,
+        group_by: List[str],
+        limit: Optional[int] = None,
+        order_by: Optional[List[Union[str, OrderByGroupBy]]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> str: ...
+    @overload
+    async def compile_sql(
+        self,
         saved_query: str,
         limit: Optional[int] = None,
         order_by: Optional[List[Union[OrderByGroupBy, OrderByMetric]]] = None,
@@ -44,6 +53,15 @@ class AsyncSemanticLayerClient:
         group_by: Optional[List[str]] = None,
         limit: Optional[int] = None,
         order_by: Optional[List[Union[str, OrderByGroupBy, OrderByMetric]]] = None,
+        where: Optional[List[str]] = None,
+        read_cache: bool = True,
+    ) -> "pa.Table": ...
+    @overload
+    async def query(
+        self,
+        group_by: List[str],
+        limit: Optional[int] = None,
+        order_by: Optional[List[Union[str, OrderByGroupBy]]] = None,
         where: Optional[List[str]] = None,
         read_cache: bool = True,
     ) -> "pa.Table": ...

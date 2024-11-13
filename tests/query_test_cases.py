@@ -17,6 +17,10 @@ TEST_QUERIES: List[QueryParameters] = [
     {
         "metrics": ["order_total"],
     },
+    # ad hoc query, only group by
+    {
+        "group_by": ["customer__customer_type"],
+    },
     # ad hoc query, metric and group by
     {
         "metrics": ["order_total"],
