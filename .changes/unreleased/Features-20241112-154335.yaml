@@ -1,3 +1,0 @@
-kind: Features
-body: Support for adhoc queries with only groupby. This is equivalent to listing dimension values.
-time: 2024-11-12T15:43:35.746064+01:00
