@@ -24,7 +24,7 @@ class BaseADBCClient:
             DatabaseOptions.WITH_COOKIE_MIDDLEWARE.value: "true",
             f"{DatabaseOptions.RPC_CALL_HEADER_PREFIX.value}user-agent": env.PLATFORM.user_agent,
             # double the default max msg size in case of queries with large batches
-            DatabaseOptions.WITH_MAX_MSG_SIZE: f"{1024 * 1024 * 32}",
+            DatabaseOptions.WITH_MAX_MSG_SIZE.value: f"{1024 * 1024 * 32}",
         }
 
     def __init__(  # noqa: D107
