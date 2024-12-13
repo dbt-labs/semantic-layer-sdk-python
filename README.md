@@ -110,4 +110,4 @@ PLATFORM.anonymous = True
 
 ## Contributing
 
-If you're interested in contributing to this project, check out our [contribution guidelines](./CONTRIBUTING.md).
+If you're interested in contributing to this project, check out our [contribution guidelines](./CONTRIBUTING.md). h
