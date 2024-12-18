@@ -8,7 +8,7 @@ on:
 jobs:
   check-changelog:
     runs-on: ubuntu-latest
-    if: "!startsWith(github.event.head_commit.message, 'version:')"
+    if: "!startsWith(github.event.pull_request.title, 'version:')"
     steps:
       - uses: actions/checkout@v4
       - run: git fetch --depth=1 origin main
@@ -48,4 +48,3 @@ jobs:
             echo "Changelog has version '$CHANGELOG_VERSION' while package has '$PACKAGE_VERSION'."
             exit 1
           fi
-
