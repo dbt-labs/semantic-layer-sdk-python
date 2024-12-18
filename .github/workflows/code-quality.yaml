@@ -1,6 +1,12 @@
 name: Code quality
 on:
   pull_request:
+    paths:
+      - 'dbtsl/**'
+      - '!dbtsl/__about__.py'
+      - 'constraints/**'
+      - 'scripts/**'
+      - 'examples/**'
 
 jobs:
   code-quality:
@@ -31,4 +37,3 @@ jobs:
           SL_HOST: ${{ secrets.TEST_HOST }}
           SL_ENV_ID: ${{ secrets.TEST_ENV_ID }}
           SL_TOKEN: ${{ secrets.TEST_TOKEN }}
-
