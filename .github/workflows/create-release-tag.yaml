@@ -13,6 +13,10 @@ jobs:
     if: "startsWith(github.event.head_commit.message, 'version:')"
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }} environment
+        uses: ./.github/actions/setup-python-env
+
       - name: Create tag
         run: |
           TAG=$(hatch version)
@@ -20,4 +24,3 @@ jobs:
           git config user.email "release-bot@users.noreply.github.com"
           git tag "$TAG"
           git push origin $TAG
-
