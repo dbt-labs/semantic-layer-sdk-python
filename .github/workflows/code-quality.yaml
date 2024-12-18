@@ -5,6 +5,7 @@ on:
 jobs:
   code-quality:
     runs-on: ubuntu-latest
+    if: "!startsWith(github.event.pull_request.title, 'version:')"
     steps:
       - uses: actions/checkout@v4
 
@@ -31,4 +32,3 @@ jobs:
           SL_HOST: ${{ secrets.TEST_HOST }}
           SL_ENV_ID: ${{ secrets.TEST_ENV_ID }}
           SL_TOKEN: ${{ secrets.TEST_TOKEN }}
-
