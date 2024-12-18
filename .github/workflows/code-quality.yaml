@@ -1,16 +1,11 @@
 name: Code quality
 on:
   pull_request:
-    paths:
-      - 'dbtsl/**'
-      - '!dbtsl/__about__.py'
-      - 'constraints/**'
-      - 'scripts/**'
-      - 'examples/**'
 
 jobs:
   code-quality:
     runs-on: ubuntu-latest
+    if: "!startsWith(github.event.pull_request.title, 'version:')"
     steps:
       - uses: actions/checkout@v4
 
