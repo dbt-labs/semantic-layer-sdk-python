@@ -20,6 +20,7 @@ class AsyncGraphQLClient:
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
     ) -> None: ...
     def session(self) -> AbstractAsyncContextManager[AsyncIterator[Self]]: ...
     @property

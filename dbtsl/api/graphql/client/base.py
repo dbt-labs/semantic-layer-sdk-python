@@ -28,6 +28,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
 
     PROTOCOL = GraphQLProtocol
     DEFAULT_URL_FORMAT = env.DEFAULT_GRAPHQL_URL_FORMAT
+    DEFAULT_TIMEOUT_MS = 10_000
 
     @classmethod
     def _default_backoff(cls) -> ExponentialBackoff:
@@ -50,23 +51,26 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
     ):
         self.environment_id = environment_id
 
         url_format = url_format or self.DEFAULT_URL_FORMAT
         server_url = url_format.format(server_host=server_host)
 
+        timeout_ms = timeout_ms or self.DEFAULT_TIMEOUT_MS
+
         headers = {
             "authorization": f"bearer {auth_token}",
             **self._extra_headers(),
         }
-        transport = self._create_transport(url=server_url, headers=headers)
+        transport = self._create_transport(url=server_url, headers=headers, timeout_ms=timeout_ms)
         self._gql = Client(transport=transport)
 
         self._gql_session_unsafe: Union[TSession, None] = None
 
     @abstractmethod
-    def _create_transport(self, url: str, headers: Dict[str, str]) -> TTransport:
+    def _create_transport(self, url: str, headers: Dict[str, str], timeout_ms: int) -> TTransport:
         """Create the underlying transport to be used by the gql Client."""
         raise NotImplementedError()
 

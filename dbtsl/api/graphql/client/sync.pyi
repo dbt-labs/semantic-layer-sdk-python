@@ -20,6 +20,7 @@ class SyncGraphQLClient:
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
     ) -> None: ...
     def session(self) -> AbstractContextManager[Iterator[Self]]: ...
     @property

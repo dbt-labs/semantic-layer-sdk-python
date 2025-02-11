@@ -31,6 +31,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
     ):
         """Initialize the metadata client.
 
@@ -41,12 +42,14 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
             url_format: The full connection URL format that transforms the `server_host`
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
+            timeout_ms: Timeout (in milliseconds) for all GraphQL requests.
         """
-        super().__init__(server_host, environment_id, auth_token, url_format)
+        super().__init__(server_host, environment_id, auth_token, url_format, timeout_ms)
 
     @override
-    def _create_transport(self, url: str, headers: Dict[str, str]) -> RequestsHTTPTransport:
-        return RequestsHTTPTransport(url=url, headers=headers)
+    def _create_transport(self, url: str, headers: Dict[str, str], timeout_ms: int) -> RequestsHTTPTransport:
+        timeout_s = int(timeout_ms / 1_000)
+        return RequestsHTTPTransport(url=url, headers=headers, timeout=timeout_s)
 
     @contextmanager
     def session(self) -> Iterator[Self]:
