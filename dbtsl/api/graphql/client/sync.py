@@ -116,7 +116,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
             backoff = self._default_backoff()
 
         # support for deprecated ExponentialBackoff.timeout_ms
-        total_timeout = backoff.timeout_ms * 1000.0 if backoff.timeout_ms is not None else self.timeout.total_timeout
+        total_timeout_s = backoff.timeout_ms * 1000.0 if backoff.timeout_ms is not None else self.timeout.total_timeout
 
         start_s = time.time()
         for sleep_ms in backoff.iter_ms():
@@ -127,8 +127,8 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
                 return qr
 
             elapsed_s = time.time() - start_s
-            if elapsed_s > total_timeout:
-                raise RetryTimeoutError(timeout_s=self.timeout.total_timeout)
+            if elapsed_s > total_timeout_s:
+                raise RetryTimeoutError(timeout_s=total_timeout_s)
 
             time.sleep(sleep_ms / 1000)
 
