@@ -1,6 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Dict, Optional
+from typing import AsyncIterator, Dict, Optional, Union
 
 import pyarrow as pa
 from gql import gql
@@ -8,7 +8,7 @@ from gql.client import AsyncClientSession
 from gql.transport.aiohttp import AIOHTTPTransport
 from typing_extensions import Self, Unpack, override
 
-from dbtsl.api.graphql.client.base import BaseGraphQLClient
+from dbtsl.api.graphql.client.base import BaseGraphQLClient, TimeoutOptions
 from dbtsl.api.graphql.protocol import (
     ProtocolOperation,
     TJobStatusResult,
@@ -31,7 +31,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
-        timeout_ms: Optional[int] = None,
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
     ):
         """Initialize the metadata client.
 
@@ -42,14 +42,25 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
             url_format: The full connection URL format that transforms the `server_host`
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
-            timeout_ms: Timeout (in milliseconds) for all GraphQL requests.
+            timeout: TimeoutOptions or total timeout (in seconds) for all GraphQL requests.
+
+        NOTE: If `timeout` is a `TimeoutOptions`, the `connect_timeout` will not be used, due to
+        limitations of `gql`'s `aiohttp` transport.
+        See: https://github.com/graphql-python/gql/blob/b066e8944b0da0a4bbac6c31f43e5c3c7772cd51/gql/transport/aiohttp.py#L110
         """
-        super().__init__(server_host, environment_id, auth_token, url_format, timeout_ms)
+        super().__init__(server_host, environment_id, auth_token, url_format, timeout)
 
     @override
-    def _create_transport(self, url: str, headers: Dict[str, str], timeout_ms: int) -> AIOHTTPTransport:
-        timeout_s = int(timeout_ms / 1_000)
-        return AIOHTTPTransport(url=url, headers=headers, timeout=timeout_s)
+    def _create_transport(self, url: str, headers: Dict[str, str]) -> AIOHTTPTransport:
+        return AIOHTTPTransport(
+            url=url,
+            headers=headers,
+            # The following type ignore is OK since gql annotated `timeout` as an `Optional[int]`,
+            # but aiohttp allows `float` timeouts
+            # See: https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientTimeout
+            timeout=self.timeout.execute_timeout,  # pyright: ignore[reportArgumentType]
+            ssl_close_timeout=self.timeout.tls_close_timeout,
+        )
 
     @asynccontextmanager
     async def session(self) -> AsyncIterator[Self]:

@@ -6,6 +6,7 @@ from typing_extensions import Self, Unpack, overload
 
 from dbtsl.api.shared.query_params import OrderByGroupBy, OrderByMetric, QueryParameters
 from dbtsl.models import Dimension, Entity, Measure, Metric, SavedQuery
+from dbtsl.timeout import TimeoutOptions
 
 class AsyncSemanticLayerClient:
     def __init__(
@@ -13,6 +14,7 @@ class AsyncSemanticLayerClient:
         environment_id: int,
         auth_token: str,
         host: str,
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
     ) -> None: ...
     @overload
     async def compile_sql(

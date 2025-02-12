@@ -1,11 +1,12 @@
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Iterator, Optional, Union
 
 from typing_extensions import Self
 
 from dbtsl.api.adbc.client.sync import SyncADBCClient
 from dbtsl.api.graphql.client.sync import SyncGraphQLClient
 from dbtsl.client.base import BaseSemanticLayerClient
+from dbtsl.timeout import TimeoutOptions
 
 
 class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADBCClient]):  # type: ignore
@@ -24,6 +25,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
         environment_id: int,
         auth_token: str,
         host: str,
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
     ) -> None:
         """Initialize the Semantic Layer client.
 
@@ -31,6 +33,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
             environment_id: your dbt environment ID
             auth_token: the API auth token
             host: the Semantic Layer API host
+            timeout: `TimeoutOptions` or total timeout for the underlying GraphQL client.
         """
         super().__init__(
             environment_id=environment_id,
@@ -38,6 +41,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
             host=host,
             gql_factory=SyncGraphQLClient,
             adbc_factory=SyncADBCClient,
+            timeout=timeout,
         )
 
     @contextmanager

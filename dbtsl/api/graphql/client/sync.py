@@ -1,6 +1,6 @@
 import time
 from contextlib import contextmanager
-from typing import Dict, Iterator, Optional
+from typing import Dict, Iterator, Optional, Union
 
 import pyarrow as pa
 from gql import gql
@@ -8,7 +8,7 @@ from gql.client import SyncClientSession
 from gql.transport.requests import RequestsHTTPTransport
 from typing_extensions import Self, Unpack, override
 
-from dbtsl.api.graphql.client.base import BaseGraphQLClient
+from dbtsl.api.graphql.client.base import BaseGraphQLClient, TimeoutOptions
 from dbtsl.api.graphql.protocol import (
     ProtocolOperation,
     TJobStatusResult,
@@ -31,7 +31,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
-        timeout_ms: Optional[int] = None,
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
     ):
         """Initialize the metadata client.
 
@@ -42,14 +42,24 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
             url_format: The full connection URL format that transforms the `server_host`
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
-            timeout_ms: Timeout (in milliseconds) for all GraphQL requests.
+            timeout: TimeoutOptions or total timeout (in seconds) for all GraphQL requests.
+
+        NOTE: If `timeout` is a `TimeoutOptions`, the `tls_close_timeout` will not be used, since
+        `requests` does not support TLS termination timeouts.
         """
-        super().__init__(server_host, environment_id, auth_token, url_format, timeout_ms)
+        super().__init__(server_host, environment_id, auth_token, url_format, timeout)
 
     @override
-    def _create_transport(self, url: str, headers: Dict[str, str], timeout_ms: int) -> RequestsHTTPTransport:
-        timeout_s = int(timeout_ms / 1_000)
-        return RequestsHTTPTransport(url=url, headers=headers, timeout=timeout_s)
+    def _create_transport(self, url: str, headers: Dict[str, str]) -> RequestsHTTPTransport:
+        return RequestsHTTPTransport(
+            url=url,
+            headers=headers,
+            # The following type ignore is OK since gql annotated `timeout` as an `Optional[int]`,
+            # but requests allows `tuple[float, float]` timeouts
+            # See: https://github.com/graphql-python/gql/blob/b066e8944b0da0a4bbac6c31f43e5c3c7772cd51/gql/transport/requests.py#L393
+            # See: https://requests.readthedocs.io/en/latest/user/advanced/#timeouts
+            timeout=(self.timeout.connect_timeout, self.timeout.execute_timeout),  # pyright: ignore[reportArgumentType]
+        )
 
     @contextmanager
     def session(self) -> Iterator[Self]:
