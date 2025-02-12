@@ -19,8 +19,23 @@ from dbtsl.api.graphql.protocol import (
 )
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.backoff import ExponentialBackoff
-from dbtsl.error import QueryFailedError, TimeoutError
+from dbtsl.error import ConnectTimeoutError, ExecuteTimeoutError, QueryFailedError, RetryTimeoutError, TimeoutError
 from dbtsl.models.query import QueryId, QueryStatus
+
+# aiohttp only started distinguishing between read and connect timeouts after version 3.10
+# If the user is using an older version, we fall back to considering them both the same thing
+try:
+    from aiohttp import ConnectionTimeoutError, ServerTimeoutError
+
+    AiohttpServerTimeout = ServerTimeoutError
+    AiohttpConnectionTimeout = ConnectionTimeoutError
+    NEW_AIOHTTP = True
+except ImportError:
+    from asyncio import TimeoutError as AsyncioTimeoutError
+
+    AiohttpServerTimeout = AsyncioTimeoutError
+    AiohttpConnectionTimeout = AsyncioTimeoutError
+    NEW_AIOHTTP = False
 
 
 class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]):
@@ -87,6 +102,12 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
 
         try:
             res = await self._gql_session.execute(gql_query, variable_values=variables)
+        except AiohttpConnectionTimeout as err:
+            if NEW_AIOHTTP:
+                raise ConnectTimeoutError(timeout_s=self.timeout.connect_timeout) from err
+            raise TimeoutError(timeout_s=self.timeout.total_timeout) from err
+        except AiohttpServerTimeout as err:
+            raise ExecuteTimeoutError(timeout_s=self.timeout.execute_timeout) from err
         except Exception as err:
             raise self._refine_err(err)
 
@@ -115,7 +136,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
 
             elapsed_s = time.time() - start_s
             if elapsed_s > total_timeout:
-                raise TimeoutError(timeout_s=self.timeout.total_timeout)
+                raise RetryTimeoutError(timeout_s=self.timeout.total_timeout)
 
             await asyncio.sleep(sleep_ms / 1000)
 

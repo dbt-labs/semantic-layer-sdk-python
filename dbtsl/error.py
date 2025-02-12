@@ -31,6 +31,18 @@ class TimeoutError(SemanticLayerError):
         return f"{self.__class__.__name__}(timeout_s={self.timeout_s})"
 
 
+class ConnectTimeoutError(TimeoutError):
+    """Raise whenever a timeout occurred while connecting to the servers."""
+
+
+class ExecuteTimeoutError(TimeoutError):
+    """Raise whenever a timeout occurred while executing an operation against the servers."""
+
+
+class RetryTimeoutError(TimeoutError):
+    """Raise whenever a timeout occurred while retrying an operation against the servers."""
+
+
 class QueryFailedError(SemanticLayerError):
     """Raise whenever a query has failed."""
 

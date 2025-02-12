@@ -6,6 +6,12 @@ import pyarrow as pa
 from gql import gql
 from gql.client import SyncClientSession
 from gql.transport.requests import RequestsHTTPTransport
+from requests import (
+    ConnectTimeout as RequestsConnectTimeout,
+)
+from requests import (
+    ReadTimeout as RequestsReadTimeout,
+)
 from typing_extensions import Self, Unpack, override
 
 from dbtsl.api.graphql.client.base import BaseGraphQLClient, TimeoutOptions
@@ -18,7 +24,7 @@ from dbtsl.api.graphql.protocol import (
 )
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.backoff import ExponentialBackoff
-from dbtsl.error import QueryFailedError, TimeoutError
+from dbtsl.error import ConnectTimeoutError, ExecuteTimeoutError, QueryFailedError, RetryTimeoutError
 from dbtsl.models.query import QueryId, QueryStatus
 
 
@@ -85,6 +91,10 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
 
         try:
             res = self._gql_session.execute(gql_query, variable_values=variables)
+        except RequestsReadTimeout as err:
+            raise ExecuteTimeoutError(timeout_s=self.timeout.execute_timeout) from err
+        except RequestsConnectTimeout as err:
+            raise ConnectTimeoutError(timeout_s=self.timeout.connect_timeout) from err
         except Exception as err:
             raise self._refine_err(err)
 
@@ -118,7 +128,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
 
             elapsed_s = time.time() - start_s
             if elapsed_s > total_timeout:
-                raise TimeoutError(timeout_s=self.timeout.total_timeout)
+                raise RetryTimeoutError(timeout_s=self.timeout.total_timeout)
 
             time.sleep(sleep_ms / 1000)
 
