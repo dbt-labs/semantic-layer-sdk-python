@@ -1,4 +1,5 @@
 import asyncio
+import time
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Dict, Optional, Union
 
@@ -18,7 +19,7 @@ from dbtsl.api.graphql.protocol import (
 )
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.backoff import ExponentialBackoff
-from dbtsl.error import QueryFailedError
+from dbtsl.error import QueryFailedError, TimeoutError
 from dbtsl.models.query import QueryId, QueryStatus
 
 
@@ -102,13 +103,19 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         if backoff is None:
             backoff = self._default_backoff()
 
+        # support for deprecated ExponentialBackoff.timeout_ms
+        total_timeout = backoff.timeout_ms * 1000.0 if backoff.timeout_ms is not None else self.timeout.total_timeout
+
+        start_s = time.time()
         for sleep_ms in backoff.iter_ms():
-            # TODO: add timeout param to all requests because technically the API could hang and
-            # then we don't respect timeout.
             kwargs["query_id"] = query_id
             qr = await self._run(poll_op, **kwargs)
             if qr.status in (QueryStatus.SUCCESSFUL, QueryStatus.FAILED):
                 return qr
+
+            elapsed_s = time.time() - start_s
+            if elapsed_s > total_timeout:
+                raise TimeoutError(timeout_s=self.timeout.total_timeout)
 
             await asyncio.sleep(sleep_ms / 1000)
 

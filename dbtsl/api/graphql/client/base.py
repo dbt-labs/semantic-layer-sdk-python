@@ -45,7 +45,6 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         return ExponentialBackoff(
             base_interval_ms=500,
             max_interval_ms=60000,
-            timeout_ms=90000,
         )
 
     @classmethod
