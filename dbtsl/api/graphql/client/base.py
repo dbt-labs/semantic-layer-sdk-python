@@ -30,12 +30,12 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
     PROTOCOL = GraphQLProtocol
     DEFAULT_URL_FORMAT = env.DEFAULT_GRAPHQL_URL_FORMAT
     DEFAULT_TIMEOUT = TimeoutOptions(
-        total_timeout=30,
+        total_timeout=60,
         # Ideally, connect timeouts are a little more than a multiple of 3, which
         # is the default packet retransmission window for TCP
         # See: https://datatracker.ietf.org/doc/html/rfc2988
         connect_timeout=4,
-        execute_timeout=10,
+        execute_timeout=60,
         tls_close_timeout=5,
     )
 
