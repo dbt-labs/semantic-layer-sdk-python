@@ -14,4 +14,4 @@ def test_error_repr_with_args() -> None:
 
 
 def test_timeout_error_str() -> None:
-    assert str(TimeoutError(timeout_ms=1000)) == "TimeoutError(timeout_ms=1000)"
+    assert str(TimeoutError(timeout_s=1000)) == "TimeoutError(timeout_s=1000)"

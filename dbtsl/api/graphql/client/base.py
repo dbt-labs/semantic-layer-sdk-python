@@ -14,6 +14,7 @@ from dbtsl.api.graphql.protocol import (
 )
 from dbtsl.backoff import ExponentialBackoff
 from dbtsl.error import AuthError
+from dbtsl.timeout import TimeoutOptions
 
 TTransport = TypeVar("TTransport", Transport, AsyncTransport)
 TSession = TypeVar("TSession", SyncClientSession, AsyncClientSession)
@@ -28,6 +29,15 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
 
     PROTOCOL = GraphQLProtocol
     DEFAULT_URL_FORMAT = env.DEFAULT_GRAPHQL_URL_FORMAT
+    DEFAULT_TIMEOUT = TimeoutOptions(
+        total_timeout=60,
+        # Ideally, connect timeouts are a little more than a multiple of 3, which
+        # is the default packet retransmission window for TCP
+        # See: https://datatracker.ietf.org/doc/html/rfc2988
+        connect_timeout=4,
+        execute_timeout=60,
+        tls_close_timeout=5,
+    )
 
     @classmethod
     def _default_backoff(cls) -> ExponentialBackoff:
@@ -35,7 +45,6 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         return ExponentialBackoff(
             base_interval_ms=500,
             max_interval_ms=60000,
-            timeout_ms=90000,
         )
 
     @classmethod
@@ -50,18 +59,30 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
     ):
         self.environment_id = environment_id
 
         url_format = url_format or self.DEFAULT_URL_FORMAT
         server_url = url_format.format(server_host=server_host)
 
+        if isinstance(timeout, int) or isinstance(timeout, float):
+            timeout = float(timeout)
+            timeout = TimeoutOptions(
+                total_timeout=timeout,
+                connect_timeout=timeout,
+                execute_timeout=timeout,
+                tls_close_timeout=timeout,
+            )
+
+        self.timeout = timeout or self.DEFAULT_TIMEOUT
+
         headers = {
             "authorization": f"bearer {auth_token}",
             **self._extra_headers(),
         }
         transport = self._create_transport(url=server_url, headers=headers)
-        self._gql = Client(transport=transport)
+        self._gql = Client(transport=transport, execute_timeout=self.timeout.execute_timeout)
 
         self._gql_session_unsafe: Union[TSession, None] = None
 
@@ -116,7 +137,14 @@ TClient = TypeVar("TClient", bound=BaseGraphQLClient, covariant=True)
 
 class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
     @abstractmethod
-    def __call__(self, server_host: str, environment_id: int, auth_token: str, url_format: str) -> TClient:
+    def __call__(
+        self,
+        server_host: str,
+        environment_id: int,
+        auth_token: str,
+        url_format: Optional[str] = None,
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+    ) -> TClient:
         """Initialize the Semantic Layer client.
 
         Args:
@@ -124,5 +152,6 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
             environment_id: your dbt environment ID
             auth_token: the API auth token
             url_format: the URL format string to construct the final URL with
+            timeout: `TimeoutOptions` or total timeout
         """
         pass

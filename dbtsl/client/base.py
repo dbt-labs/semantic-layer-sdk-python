@@ -1,9 +1,10 @@
 from abc import ABC
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Optional, TypeVar, Union
 
 import dbtsl.env as env
 from dbtsl.api.adbc.client.base import ADBCClientFactory, BaseADBCClient
 from dbtsl.api.graphql.client.base import BaseGraphQLClient, GraphQLClientFactory
+from dbtsl.timeout import TimeoutOptions
 
 TGQLClient = TypeVar("TGQLClient", bound=BaseGraphQLClient)
 TADBCClient = TypeVar("TADBCClient", bound=BaseADBCClient)
@@ -38,6 +39,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
         host: str,
         gql_factory: GraphQLClientFactory[TGQLClient],
         adbc_factory: ADBCClientFactory[TADBCClient],
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
     ) -> None:
         """Initialize the Semantic Layer client.
 
@@ -47,6 +49,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             host: the Semantic Layer API host
             gql_factory: class of the underlying GQL client
             adbc_factory: class of the underlying ADBC client
+            timeout: `TimeoutOptions` or total timeout for the underlying GraphQL client.
         """
         self._has_session = False
 
@@ -57,6 +60,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             environment_id=environment_id,
             auth_token=auth_token,
             url_format=env.GRAPHQL_URL_FORMAT,
+            timeout=timeout,
         )
         self._adbc = adbc_factory(
             server_host=host,

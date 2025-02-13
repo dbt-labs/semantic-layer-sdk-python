@@ -17,18 +17,30 @@ class SemanticLayerError(RuntimeError):
 class TimeoutError(SemanticLayerError):
     """Raise whenever a request times out."""
 
-    def __init__(self, *args, timeout_ms: int, **kwargs) -> None:
+    def __init__(self, *args, timeout_s: float, **kwargs) -> None:
         """Initialize the timeout error.
 
         Args:
-            timeout_ms: The maximum time limit that got exceeded, in milliseconds
+            timeout_s: The maximum time limit that got exceeded, in seconds
             *args: any other exception args
             **kwargs: any other exception kwargs
         """
-        self.timeout_ms = timeout_ms
+        self.timeout_s = timeout_s
 
     def __str__(self) -> str:  # noqa: D105
-        return f"{self.__class__.__name__}(timeout_ms={self.timeout_ms})"
+        return f"{self.__class__.__name__}(timeout_s={self.timeout_s})"
+
+
+class ConnectTimeoutError(TimeoutError):
+    """Raise whenever a timeout occurred while connecting to the servers."""
+
+
+class ExecuteTimeoutError(TimeoutError):
+    """Raise whenever a timeout occurred while executing an operation against the servers."""
+
+
+class RetryTimeoutError(TimeoutError):
+    """Raise whenever a timeout occurred while retrying an operation against the servers."""
 
 
 class QueryFailedError(SemanticLayerError):

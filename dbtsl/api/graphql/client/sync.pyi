@@ -12,6 +12,7 @@ from dbtsl.models import (
     Metric,
     SavedQuery,
 )
+from dbtsl.timeout import TimeoutOptions
 
 class SyncGraphQLClient:
     def __init__(
@@ -20,6 +21,7 @@ class SyncGraphQLClient:
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
     ) -> None: ...
     def session(self) -> AbstractContextManager[Iterator[Self]]: ...
     @property

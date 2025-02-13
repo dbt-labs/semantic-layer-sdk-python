@@ -1,4 +1,4 @@
-from typing import AsyncIterator, Iterator, Union
+from typing import AsyncIterator, Iterator
 
 import pytest
 from pytest_subtests import SubTests
@@ -11,8 +11,7 @@ from dbtsl.client.sync import SyncSemanticLayerClient
 from ..conftest import Credentials
 from ..query_test_cases import TEST_QUERIES
 from ..util import maybe_await
-
-BothClients = Union[SyncSemanticLayerClient, AsyncSemanticLayerClient]
+from .conftest import BothClients
 
 
 @pytest.fixture(scope="module")

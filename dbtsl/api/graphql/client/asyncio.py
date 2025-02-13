@@ -1,6 +1,8 @@
 import asyncio
+import time
+from builtins import TimeoutError as BuiltinTimeoutError
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Dict, Optional
+from typing import AsyncIterator, Dict, Optional, Union
 
 import pyarrow as pa
 from gql import gql
@@ -8,7 +10,7 @@ from gql.client import AsyncClientSession
 from gql.transport.aiohttp import AIOHTTPTransport
 from typing_extensions import Self, Unpack, override
 
-from dbtsl.api.graphql.client.base import BaseGraphQLClient
+from dbtsl.api.graphql.client.base import BaseGraphQLClient, TimeoutOptions
 from dbtsl.api.graphql.protocol import (
     ProtocolOperation,
     TJobStatusResult,
@@ -18,8 +20,23 @@ from dbtsl.api.graphql.protocol import (
 )
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.backoff import ExponentialBackoff
-from dbtsl.error import QueryFailedError
+from dbtsl.error import ConnectTimeoutError, ExecuteTimeoutError, QueryFailedError, RetryTimeoutError, TimeoutError
 from dbtsl.models.query import QueryId, QueryStatus
+
+# aiohttp only started distinguishing between read and connect timeouts after version 3.10
+# If the user is using an older version, we fall back to considering them both the same thing
+try:
+    from aiohttp import ConnectionTimeoutError, ServerTimeoutError
+
+    AiohttpServerTimeout = ServerTimeoutError
+    AiohttpConnectionTimeout = ConnectionTimeoutError
+    NEW_AIOHTTP = True
+except ImportError:
+    from asyncio import TimeoutError as AsyncioTimeoutError
+
+    AiohttpServerTimeout = AsyncioTimeoutError
+    AiohttpConnectionTimeout = AsyncioTimeoutError
+    NEW_AIOHTTP = False
 
 
 class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]):
@@ -31,6 +48,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
     ):
         """Initialize the metadata client.
 
@@ -41,12 +59,25 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
             url_format: The full connection URL format that transforms the `server_host`
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
+            timeout: TimeoutOptions or total timeout (in seconds) for all GraphQL requests.
+
+        NOTE: If `timeout` is a `TimeoutOptions`, the `connect_timeout` will not be used, due to
+        limitations of `gql`'s `aiohttp` transport.
+        See: https://github.com/graphql-python/gql/blob/b066e8944b0da0a4bbac6c31f43e5c3c7772cd51/gql/transport/aiohttp.py#L110
         """
-        super().__init__(server_host, environment_id, auth_token, url_format)
+        super().__init__(server_host, environment_id, auth_token, url_format, timeout)
 
     @override
     def _create_transport(self, url: str, headers: Dict[str, str]) -> AIOHTTPTransport:
-        return AIOHTTPTransport(url=url, headers=headers)
+        return AIOHTTPTransport(
+            url=url,
+            headers=headers,
+            # The following type ignore is OK since gql annotated `timeout` as an `Optional[int]`,
+            # but aiohttp allows `float` timeouts
+            # See: https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientTimeout
+            timeout=self.timeout.execute_timeout,  # pyright: ignore[reportArgumentType]
+            ssl_close_timeout=self.timeout.tls_close_timeout,
+        )
 
     @asynccontextmanager
     async def session(self) -> AsyncIterator[Self]:
@@ -72,6 +103,14 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
 
         try:
             res = await self._gql_session.execute(gql_query, variable_values=variables)
+        except AiohttpConnectionTimeout as err:
+            if NEW_AIOHTTP:
+                raise ConnectTimeoutError(timeout_s=self.timeout.connect_timeout) from err
+            raise TimeoutError(timeout_s=self.timeout.total_timeout) from err
+        # I found out by trial and error that aiohttp can raise all these different kinds of errors
+        # depending on where the timeout happened in the stack (aiohttp, anyio, asyncio)
+        except (AiohttpServerTimeout, asyncio.TimeoutError, BuiltinTimeoutError) as err:
+            raise ExecuteTimeoutError(timeout_s=self.timeout.execute_timeout) from err
         except Exception as err:
             raise self._refine_err(err)
 
@@ -88,13 +127,19 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         if backoff is None:
             backoff = self._default_backoff()
 
+        # support for deprecated ExponentialBackoff.timeout_ms
+        total_timeout_s = backoff.timeout_ms * 1000.0 if backoff.timeout_ms is not None else self.timeout.total_timeout
+
+        start_s = time.time()
         for sleep_ms in backoff.iter_ms():
-            # TODO: add timeout param to all requests because technically the API could hang and
-            # then we don't respect timeout.
             kwargs["query_id"] = query_id
             qr = await self._run(poll_op, **kwargs)
             if qr.status in (QueryStatus.SUCCESSFUL, QueryStatus.FAILED):
                 return qr
+
+            elapsed_s = time.time() - start_s
+            if elapsed_s > total_timeout_s:
+                raise RetryTimeoutError(timeout_s=total_timeout_s)
 
             await asyncio.sleep(sleep_ms / 1000)
 

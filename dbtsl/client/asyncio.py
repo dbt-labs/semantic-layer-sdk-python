@@ -1,11 +1,12 @@
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import AsyncIterator, Optional, Union
 
 from typing_extensions import Self
 
 from dbtsl.api.adbc.client.asyncio import AsyncADBCClient
 from dbtsl.api.graphql.client.asyncio import AsyncGraphQLClient
 from dbtsl.client.base import BaseSemanticLayerClient
+from dbtsl.timeout import TimeoutOptions
 
 
 class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, AsyncADBCClient]):  # type: ignore
@@ -24,6 +25,7 @@ class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, Async
         environment_id: int,
         auth_token: str,
         host: str,
+        timeout: Optional[Union[TimeoutOptions, float, int]] = None,
     ) -> None:
         """Initialize the Semantic Layer client.
 
@@ -31,6 +33,7 @@ class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, Async
             environment_id: your dbt environment ID
             auth_token: the API auth token
             host: the Semantic Layer API host
+            timeout: `TimeoutOptions` or total timeout for the underlying GraphQL client.
         """
         super().__init__(
             environment_id=environment_id,
@@ -38,6 +41,7 @@ class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, Async
             host=host,
             gql_factory=AsyncGraphQLClient,
             adbc_factory=AsyncADBCClient,
+            timeout=timeout,
         )
 
     @asynccontextmanager
