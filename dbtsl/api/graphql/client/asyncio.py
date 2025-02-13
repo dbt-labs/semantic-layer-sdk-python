@@ -1,5 +1,6 @@
 import asyncio
 import time
+from builtins import TimeoutError as BuiltinTimeoutError
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Dict, Optional, Union
 
@@ -106,7 +107,9 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
             if NEW_AIOHTTP:
                 raise ConnectTimeoutError(timeout_s=self.timeout.connect_timeout) from err
             raise TimeoutError(timeout_s=self.timeout.total_timeout) from err
-        except AiohttpServerTimeout as err:
+        # I found out by trial and error that aiohttp can raise all these different kinds of errors
+        # depending on where the timeout happened in the stack (aiohttp, anyio, asyncio)
+        except (AiohttpServerTimeout, asyncio.TimeoutError, BuiltinTimeoutError) as err:
             raise ExecuteTimeoutError(timeout_s=self.timeout.execute_timeout) from err
         except Exception as err:
             raise self._refine_err(err)
