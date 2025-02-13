@@ -82,7 +82,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
             **self._extra_headers(),
         }
         transport = self._create_transport(url=server_url, headers=headers)
-        self._gql = Client(transport=transport)
+        self._gql = Client(transport=transport, execute_timeout=self.timeout.execute_timeout)
 
         self._gql_session_unsafe: Union[TSession, None] = None
 
