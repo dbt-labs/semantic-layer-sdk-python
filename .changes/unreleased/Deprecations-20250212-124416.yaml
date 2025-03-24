@@ -1,3 +1,0 @@
-kind: Deprecations
-body: '`ExponentialBackoff.timeout_ms` is now deprecated. Prefer setting `total_timeout` in the global `TimeoutOptions`.'
-time: 2025-02-12T12:44:16.402691+01:00
