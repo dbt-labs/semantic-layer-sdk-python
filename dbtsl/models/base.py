@@ -2,9 +2,10 @@ import inspect
 import warnings
 from dataclasses import dataclass, fields, is_dataclass
 from dataclasses import field as dc_field
+from enum import EnumMeta
 from functools import cache
 from types import MappingProxyType
-from typing import Any, ClassVar, Dict, List, Set, Type, Union
+from typing import Any, ClassVar, Dict, List, Set, Tuple, Type, Union
 from typing import get_args as get_type_args
 from typing import get_origin as get_type_origin
 
@@ -18,6 +19,35 @@ def snake_case_to_camel_case(s: str) -> str:
     """Convert a snake_case_string into a camelCaseString."""
     tokens = s.split("_")
     return tokens[0] + "".join(t.title() for t in tokens[1:])
+
+
+class FlexibleEnumMeta(EnumMeta):
+    """Makes an Enum class not break if you provide it an unknown value."""
+
+    _subclass_registry: ClassVar[Set[str]] = set()
+
+    UNKNOWN = "UNKNOWN"
+
+    def __new__(metacls: Type["FlexibleEnumMeta"], name: str, bases: Tuple[Type], namespace: Dict[str, Any], **kwargs):
+        """Overwrite the _missing_ method of enum classes."""
+        msg = f"Class {name} needs UNKNOWN attribute with 'UNKNOWN' string value"
+        assert namespace.get("UNKNOWN", None) == "UNKNOWN", msg
+
+        metacls._subclass_registry.add(name)
+
+        newclass = super().__new__(metacls, name, bases, namespace)  # pyright: ignore[reportArgumentType]
+        setattr(newclass, "_missing_", classmethod(metacls._missing_))  # pyright: ignore[reportArgumentType]
+        return newclass
+
+    def __getitem__(cls, name: str) -> Any:
+        """Return the UNKNOWN attribute if can't find value in class."""
+        try:
+            return super().__getitem__(name)
+        except KeyError:
+            return cls.UNKNOWN
+
+    def _missing_(cls, _name: str) -> str:
+        return cls.UNKNOWN
 
 
 class BaseModel(DataClassDictMixin):

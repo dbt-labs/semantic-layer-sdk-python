@@ -2,12 +2,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
 
 
-class EntityType(str, Enum):
+class EntityType(Enum, metaclass=FlexibleEnumMeta):
     """All supported entity types."""
 
+    UNKNOWN = "UNKNOWN"
     FOREIGN = "FOREIGN"
     NATURAL = "NATURAL"
     PRIMARY = "PRIMARY"

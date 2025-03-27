@@ -2,10 +2,10 @@ from enum import Enum
 
 from typing_extensions import override
 
-from dbtsl.models.base import DeprecatedMixin
+from dbtsl.models.base import DeprecatedMixin, FlexibleEnumMeta
 
 
-class TimeGranularity(str, DeprecatedMixin, Enum):
+class TimeGranularity(DeprecatedMixin, Enum, metaclass=FlexibleEnumMeta):
     """A time granularity."""
 
     @override
@@ -16,6 +16,7 @@ class TimeGranularity(str, DeprecatedMixin, Enum):
             "Please just use strings to represent time grains."
         )
 
+    UNKNOWN = "UNKNOWN"
     NANOSECOND = "NANOSECOND"
     MICROSECOND = "MICROSECOND"
     MILLISECOND = "MILLISECOND"
@@ -29,9 +30,10 @@ class TimeGranularity(str, DeprecatedMixin, Enum):
     YEAR = "YEAR"
 
 
-class DatePart(str, Enum):
+class DatePart(Enum, metaclass=FlexibleEnumMeta):
     """Date part."""
 
+    UNKNOWN = "UNKNOWN"
     DOY = "DOY"
     DOW = "DOW"
     DAY = "DAY"

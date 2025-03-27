@@ -2,13 +2,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 
-from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
 from dbtsl.models.time import TimeGranularity
 
 
-class DimensionType(str, Enum):
+class DimensionType(Enum, metaclass=FlexibleEnumMeta):
     """The type of a dimension."""
 
+    UNKNOWN = "UNKNOWN"
     CATEGORICAL = "CATEGORICAL"
     TIME = "TIME"
 
