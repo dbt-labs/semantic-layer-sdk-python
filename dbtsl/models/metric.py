@@ -2,16 +2,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 
-from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
 from dbtsl.models.dimension import Dimension
 from dbtsl.models.entity import Entity
 from dbtsl.models.measure import Measure
 from dbtsl.models.time import TimeGranularity
 
 
-class MetricType(str, Enum):
+class MetricType(Enum, metaclass=FlexibleEnumMeta):
     """The type of a Metric."""
 
+    UNKNOWN = "UNKNOWN"
     SIMPLE = "SIMPLE"
     RATIO = "RATIO"
     CUMULATIVE = "CUMULATIVE"

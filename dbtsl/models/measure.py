@@ -2,12 +2,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
 
 
-class AggregationType(str, Enum):
+class AggregationType(Enum, metaclass=FlexibleEnumMeta):
     """All supported aggregation functions."""
 
+    UNKNOWN = "UNKNOWN"
     SUM = "SUM"
     MIN = "MIN"
     MAX = "MAX"

@@ -3,13 +3,14 @@ from dataclasses import field as dc_field
 from enum import Enum
 from typing import List, Optional
 
-from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
 from dbtsl.models.time import DatePart, TimeGranularity
 
 
-class ExportDestinationType(str, Enum):
+class ExportDestinationType(Enum, metaclass=FlexibleEnumMeta):
     """All kinds of export destinations."""
 
+    UNKNOWN = "UNKNOWN"
     TABLE = "TABLE"
     VIEW = "VIEW"
 

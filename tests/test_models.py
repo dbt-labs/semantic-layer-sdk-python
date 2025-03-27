@@ -1,12 +1,15 @@
+import inspect
 import warnings
 from dataclasses import dataclass
 from dataclasses import field as dc_field
+from enum import Enum
 from typing import List
 
 import pytest
 from mashumaro.codecs.basic import decode
 from typing_extensions import override
 
+import dbtsl.models as ALL_EXPORTED_MODELS
 from dbtsl.api.graphql.util import normalize_query
 from dbtsl.api.shared.query_params import (
     AdhocQueryParametersStrict,
@@ -17,7 +20,7 @@ from dbtsl.api.shared.query_params import (
     validate_order_by,
     validate_query_parameters,
 )
-from dbtsl.models.base import BaseModel, DeprecatedMixin, GraphQLFragmentMixin
+from dbtsl.models.base import BaseModel, DeprecatedMixin, FlexibleEnumMeta, GraphQLFragmentMixin
 from dbtsl.models.base import snake_case_to_camel_case as stc
 
 
@@ -27,6 +30,47 @@ def test_snake_case_to_camel_case() -> None:
     assert stc("Hello_world") == "HelloWorld"
     assert stc("hello world") == "hello world"
     assert stc("helloWorld") == "helloWorld"
+
+
+def test_FlexibleEnumMeta_parse_unknown_value() -> None:
+    """Make sure FlexibleEnumMeta classes parse unknown values without error."""
+
+    class EnumTest(Enum, metaclass=FlexibleEnumMeta):
+        A = "A"
+        B = "B"
+        UNKNOWN = "UNKNOWN"
+
+    assert EnumTest("A") == EnumTest.A
+    assert EnumTest("B") == EnumTest.B
+    assert EnumTest("test") == EnumTest.UNKNOWN
+
+
+def test_FlexibleEnumMeta_subclass_with_invalid_unknown_attribute() -> None:
+    """Make sure we'll raise an error whenever a flexible enum isn't declared properly."""
+    with pytest.raises(AssertionError):
+
+        class EnumTestNoUnknown(Enum, metaclass=FlexibleEnumMeta):
+            A = "A"
+
+        _ = EnumTestNoUnknown
+
+    with pytest.raises(AssertionError):
+
+        class EnumTestInvalidUnknown(Enum, metaclass=FlexibleEnumMeta):
+            A = "A"
+            UNKNOWN = "invalid_value"
+
+        _ = EnumTestInvalidUnknown
+
+
+def test_all_enum_models_are_flexible() -> None:
+    """Make sure we didn't forget to make any enum type flexible."""
+    exported_enum_classes = inspect.getmembers(
+        ALL_EXPORTED_MODELS, lambda member: (inspect.isclass(member) and issubclass(member, Enum))
+    )
+    for enum_class_name, _ in exported_enum_classes:
+        msg = f"Enum {enum_class_name} needs to have FlexibleEnumMeta metaclass."
+        assert enum_class_name in FlexibleEnumMeta._subclass_registry, msg
 
 
 def test_base_model_auto_alias() -> None:

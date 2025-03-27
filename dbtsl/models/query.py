@@ -6,14 +6,15 @@ from typing import NewType, Optional
 
 import pyarrow as pa
 
-from dbtsl.models.base import BaseModel, GraphQLFragmentMixin
+from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
 
 QueryId = NewType("QueryId", str)
 
 
-class QueryStatus(str, Enum):
+class QueryStatus(Enum, metaclass=FlexibleEnumMeta):
     """All the possible states of a query."""
 
+    UNKNOWN = "UNKNOWN"
     PENDING = "PENDING"
     RUNNING = "RUNNING"
     COMPILED = "COMPILED"
