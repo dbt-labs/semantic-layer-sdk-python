@@ -1,3 +1,0 @@
-kind: Fixes
-body: Added `FlexibleEnumMeta` to make enums non-breaking when we add a new value to the API.
-time: 2025-03-27T18:41:48.001433+01:00
