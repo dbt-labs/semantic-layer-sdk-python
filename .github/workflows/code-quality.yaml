@@ -1,11 +1,25 @@
 name: Code quality
 on:
+  workflow_dispatch:
+
+  workflow_call:
+    secrets:
+      TEST_HOST:
+        required: true
+      TEST_ENV_ID:
+        required: true
+      TEST_TOKEN:
+        required: true
+
   pull_request:
+
+  push:
+    branches:
+      - main
 
 jobs:
   code-quality:
     runs-on: ubuntu-latest
-    if: "!startsWith(github.event.pull_request.title, 'version:')"
     steps:
       - uses: actions/checkout@v4
 

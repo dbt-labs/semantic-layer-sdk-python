@@ -6,7 +6,15 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+-[a-zA-Z]*'
 
 jobs:
+  code-quality:
+    uses: ./.github/workflows/code-quality.yaml
+    secrets:
+      TEST_HOST: ${{ secrets.TEST_HOST }}
+      TEST_ENV_ID: ${{ secrets.TEST_ENV_ID }}
+      TEST_TOKEN: ${{ secrets.TEST_TOKEN }}
+
   pypi-publish:
+    needs: [code-quality]
     runs-on: ubuntu-latest
     environment: 
       name: release
