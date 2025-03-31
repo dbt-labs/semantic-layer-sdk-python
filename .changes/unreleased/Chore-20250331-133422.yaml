@@ -1,3 +1,0 @@
-kind: Chore
-body: Add code quality check on merge to `main` and on publish to PyPI
-time: 2025-03-31T13:34:22.952433+02:00
