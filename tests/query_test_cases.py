@@ -1,7 +1,7 @@
 from typing import List
 
 from dbtsl import OrderByGroupBy
-from dbtsl.api.shared.query_params import QueryParameters
+from dbtsl.api.shared.query_params import GroupByParam, GroupByType, QueryParameters
 
 TEST_QUERIES: List[QueryParameters] = [
     # ad hoc query, all parameters
@@ -37,5 +37,18 @@ TEST_QUERIES: List[QueryParameters] = [
     # saved query, no parameters
     {
         "saved_query": "order_metrics",
+    },
+    # group by param object
+    {
+        "metrics": ["order_total"],
+        "group_by": [GroupByParam(name="customer__customer_type", grain="month", type=GroupByType.DIMENSION)],
+    },
+    # multiple group by param objects
+    {
+        "metrics": ["order_total"],
+        "group_by": [
+            GroupByParam(name="customer__customer_type", grain="month", type=GroupByType.DIMENSION),
+            GroupByParam(name="customer__customer_type", grain="week", type=GroupByType.DIMENSION),
+        ],
     },
 ]

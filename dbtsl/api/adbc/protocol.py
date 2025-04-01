@@ -4,6 +4,8 @@ from typing import Any, List, Mapping
 
 from dbtsl.api.shared.query_params import (
     DimensionValuesQueryParameters,
+    GroupByParam,
+    GroupByType,
     OrderByGroupBy,
     OrderByMetric,
     QueryParameters,
@@ -37,6 +39,17 @@ class ADBCProtocol:
             if val.descending:
                 d += ".descending(True)"
             return d
+
+        if isinstance(val, GroupByParam):
+            g: str = ""
+            if val.type == GroupByType.DIMENSION:
+                g = f'Dimension("{val.name}")'
+            elif val.type == GroupByType.ENTITY:
+                g = f'Entity("{val.name}")'
+            if val.grain:
+                grain_str = val.grain.lower()
+                g += f'.grain("{grain_str}")'
+            return g
 
         return json.dumps(val)
 

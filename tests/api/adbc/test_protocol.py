@@ -1,5 +1,5 @@
 from dbtsl.api.adbc.protocol import ADBCProtocol
-from dbtsl.api.shared.query_params import OrderByGroupBy, OrderByMetric
+from dbtsl.api.shared.query_params import GroupByParam, GroupByType, OrderByGroupBy, OrderByMetric
 
 
 def test_serialize_val_basic_values() -> None:
@@ -70,6 +70,23 @@ def test_get_query_sql_simple_query() -> None:
     expected = (
         'SELECT * FROM {{ semantic_layer.query(metrics=["a","b"],'
         'order_by=[Metric("a").descending(True)],read_cache=True) }}'
+    )
+    assert sql == expected
+
+
+def test_get_query_sql_group_by_param() -> None:
+    sql = ADBCProtocol.get_query_sql(
+        params={
+            "metrics": ["a", "b"],
+            "group_by": [
+                GroupByParam(name="c", type=GroupByType.DIMENSION, grain="day"),
+                GroupByParam(name="d", type=GroupByType.ENTITY, grain="week"),
+            ],
+        }
+    )
+    expected = (
+        "SELECT * FROM {{ semantic_layer.query("
+        'group_by=[Dimension("c").grain("day"),Entity("d").grain("week")],metrics=["a","b"],read_cache=True) }}'
     )
     assert sql == expected
 
