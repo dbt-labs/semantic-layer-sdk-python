@@ -1,3 +1,5 @@
+# mypy: disable-error-code="misc"
+
 from contextlib import AbstractAsyncContextManager
 from typing import AsyncIterator, List, Optional, Union
 

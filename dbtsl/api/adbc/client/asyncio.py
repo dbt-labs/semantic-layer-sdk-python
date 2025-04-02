@@ -6,8 +6,7 @@ import pyarrow as pa
 from typing_extensions import Self, Unpack
 
 from dbtsl.api.adbc.client.base import BaseADBCClient
-from dbtsl.api.adbc.protocol import QueryParameters
-from dbtsl.api.shared.query_params import DimensionValuesQueryParameters
+from dbtsl.api.shared.query_params import DimensionValuesQueryParameters, QueryParameters
 
 
 class AsyncADBCClient(BaseADBCClient):
@@ -59,7 +58,7 @@ class AsyncADBCClient(BaseADBCClient):
         # just creating the cursor object doesn't perform any blocking IO.
         with self._conn.cursor() as cur:
             try:
-                await self._loop.run_in_executor(None, cur.execute, query_sql)
+                await self._loop.run_in_executor(None, cur.execute, query_sql)  # pyright: ignore[reportUnknownArgumentType,reportUnknownMemberType]
             except Exception as err:
                 self._handle_error(err)
             table = await self._loop.run_in_executor(None, cur.fetch_arrow_table)
@@ -74,7 +73,8 @@ class AsyncADBCClient(BaseADBCClient):
         # just creating the cursor object doesn't perform any blocking IO.
         with self._conn.cursor() as cur:
             try:
-                await self._loop.run_in_executor(None, cur.execute, query_sql)
+                await self._loop.run_in_executor(None, cur.execute, query_sql)  # pyright: ignore[reportUnknownArgumentType,reportUnknownMemberType]
+
             except Exception as err:
                 self._handle_error(err)
             table = await self._loop.run_in_executor(None, cur.fetch_arrow_table)

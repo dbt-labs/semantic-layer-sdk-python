@@ -25,7 +25,7 @@ from .time import DatePart, TimeGranularity
 # Only importing this so it registers aliases
 _ = QueryResult
 
-BaseModel._register_subclasses()
+BaseModel._register_subclasses()  # pyright: ignore[reportPrivateUsage]
 
 __all__ = [
     "AggregationType",

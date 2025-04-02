@@ -5,8 +5,7 @@ import pyarrow as pa
 from typing_extensions import Self, Unpack
 
 from dbtsl.api.adbc.client.base import BaseADBCClient
-from dbtsl.api.adbc.protocol import QueryParameters
-from dbtsl.api.shared.query_params import DimensionValuesQueryParameters
+from dbtsl.api.shared.query_params import DimensionValuesQueryParameters, QueryParameters
 
 
 class SyncADBCClient(BaseADBCClient):
@@ -53,7 +52,7 @@ class SyncADBCClient(BaseADBCClient):
 
         with self._conn.cursor() as cur:
             try:
-                cur.execute(query_sql)
+                cur.execute(query_sql)  # pyright: ignore[reportUnknownMemberType]
             except Exception as err:
                 self._handle_error(err)
 
@@ -67,7 +66,7 @@ class SyncADBCClient(BaseADBCClient):
 
         with self._conn.cursor() as cur:
             try:
-                cur.execute(query_sql)
+                cur.execute(query_sql)  # pyright: ignore[reportUnknownMemberType]
             except Exception as err:
                 self._handle_error(err)
 

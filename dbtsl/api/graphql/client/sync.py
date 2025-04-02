@@ -25,7 +25,7 @@ from dbtsl.api.graphql.protocol import (
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.backoff import ExponentialBackoff
 from dbtsl.error import ConnectTimeoutError, ExecuteTimeoutError, QueryFailedError, RetryTimeoutError
-from dbtsl.models.query import QueryId, QueryStatus
+from dbtsl.models.query import QueryStatus
 
 
 class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSession]):
@@ -64,7 +64,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
             # but requests allows `tuple[float, float]` timeouts
             # See: https://github.com/graphql-python/gql/blob/b066e8944b0da0a4bbac6c31f43e5c3c7772cd51/gql/transport/requests.py#L393
             # See: https://requests.readthedocs.io/en/latest/user/advanced/#timeouts
-            timeout=(self.timeout.connect_timeout, self.timeout.execute_timeout),  # pyright: ignore[reportArgumentType]
+            timeout=(self.timeout.connect_timeout, self.timeout.execute_timeout),  # type: ignore
         )
 
     @contextmanager
@@ -83,14 +83,14 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
             yield self
             self._gql_session_unsafe = None
 
-    def _run(self, op: ProtocolOperation[TVariables, TResponse], **kwargs: TVariables) -> TResponse:
+    def _run(self, op: ProtocolOperation[TVariables, TResponse], raw_variables: TVariables) -> TResponse:
         """Run a `ProtocolOperation`."""
         raw_query = op.get_request_text()
-        variables = op.get_request_variables(environment_id=self.environment_id, **kwargs)
+        variables = op.get_request_variables(environment_id=self.environment_id, variables=raw_variables)
         gql_query = gql(raw_query)
 
         try:
-            res = self._gql_session.execute(gql_query, variable_values=variables)
+            res = self._gql_session.execute(gql_query, variable_values=variables)  # type: ignore
         except RequestsReadTimeout as err:
             raise ExecuteTimeoutError(timeout_s=self.timeout.execute_timeout) from err
         except RequestsConnectTimeout as err:
@@ -102,10 +102,9 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
 
     def _poll_until_complete(
         self,
-        query_id: QueryId,
         poll_op: ProtocolOperation[TJobStatusVariables, TJobStatusResult],
+        variables: TJobStatusVariables,
         backoff: Optional[ExponentialBackoff] = None,
-        **kwargs,
     ) -> TJobStatusResult:
         """Poll for a query's results until it is in a completed state (SUCCESSFUL or FAILED).
 
@@ -120,9 +119,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
 
         start_s = time.time()
         for sleep_ms in backoff.iter_ms():
-            kwargs["query_id"] = query_id
-
-            qr = self._run(poll_op, **kwargs)
+            qr = self._run(op=poll_op, raw_variables=variables)
             if qr.status in (QueryStatus.SUCCESSFUL, QueryStatus.FAILED):
                 return qr
 
@@ -138,7 +135,13 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
     def query(self, **params: Unpack[QueryParameters]) -> "pa.Table":
         """Query the Semantic Layer."""
         query_id = self.create_query(**params)
-        first_page_results = self._poll_until_complete(query_id, self.PROTOCOL.get_query_result, page_num=1)
+        first_page_results = self._poll_until_complete(
+            poll_op=self.PROTOCOL.get_query_result,
+            variables={
+                "query_id": query_id,
+                "page_num": 1,
+            },
+        )
         if first_page_results.status != QueryStatus.SUCCESSFUL:
             raise QueryFailedError()
 
@@ -153,5 +156,5 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         ]
         all_page_results = [first_page_results] + results
         tables = [r.result_table for r in all_page_results]
-        final_table = pa.concat_tables(tables)
+        final_table = pa.concat_tables(tables)  # type: ignore
         return final_table

@@ -1,4 +1,3 @@
-import functools
 import warnings
 from abc import abstractmethod
 from typing import Any, Dict, Generic, Optional, Protocol, TypeVar, Union
@@ -126,13 +125,15 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DeprecationWarning)
-            return functools.partial(
-                self._run,
-                op=op,
-            )
+
+            def wrapped(**kwargs: Any) -> Any:
+                return self._run(op=op, raw_variables=kwargs)
+
+            return wrapped
 
 
-TClient = TypeVar("TClient", bound=BaseGraphQLClient, covariant=True)
+# TODO: have to type ignore, see: https://github.com/microsoft/pyright/issues/3497
+TClient = TypeVar("TClient", bound=BaseGraphQLClient, covariant=True)  # type: ignore
 
 
 class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101

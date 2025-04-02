@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, List, Mapping, Protocol, TypedDict, TypeVar
+from typing import Any, Dict, Generic, List, Mapping, Protocol, TypedDict, TypeVar, cast
 
 from mashumaro.codecs.basic import decode as decode_to_dataclass
 from typing_extensions import NotRequired, override
@@ -51,7 +51,7 @@ class ProtocolOperation(Generic[TVariables, TResponse], ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_request_variables(self, environment_id: int, **kwargs: TVariables) -> Dict[str, Any]:
+    def get_request_variables(self, environment_id: int, variables: TVariables) -> Dict[str, Any]:
         """Get the GraphQL variables dictionary."""
         raise NotImplementedError()
 
@@ -82,7 +82,7 @@ class ListMetricsOperation(ProtocolOperation[EmptyVariables, List[Metric]]):
         return render_query(query, Metric.gql_fragments())
 
     @override
-    def get_request_variables(self, environment_id: int, **kwargs: EmptyVariables) -> Dict[str, Any]:
+    def get_request_variables(self, environment_id: int, variables: EmptyVariables) -> Dict[str, Any]:
         return {"environmentId": environment_id}
 
     @override
@@ -111,10 +111,10 @@ class ListDimensionsOperation(ProtocolOperation[ListEntitiesOperationVariables, 
         return render_query(query, Dimension.gql_fragments())
 
     @override
-    def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
+    def get_request_variables(self, environment_id: int, variables: ListEntitiesOperationVariables) -> Dict[str, Any]:
         return {
             "environmentId": environment_id,
-            "metrics": [{"name": m} for m in kwargs["metrics"]],
+            "metrics": [{"name": m} for m in variables["metrics"]],
         }
 
     @override
@@ -137,10 +137,10 @@ class ListMeasuresOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
         return render_query(query, Measure.gql_fragments())
 
     @override
-    def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
+    def get_request_variables(self, environment_id: int, variables: ListEntitiesOperationVariables) -> Dict[str, Any]:
         return {
             "environmentId": environment_id,
-            "metrics": [{"name": m} for m in kwargs["metrics"]],
+            "metrics": [{"name": m} for m in variables["metrics"]],
         }
 
     @override
@@ -163,10 +163,10 @@ class ListEntitiesOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
         return render_query(query, Entity.gql_fragments())
 
     @override
-    def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
+    def get_request_variables(self, environment_id: int, variables: ListEntitiesOperationVariables) -> Dict[str, Any]:
         return {
             "environmentId": environment_id,
-            "metrics": [{"name": m} for m in kwargs["metrics"]],
+            "metrics": [{"name": m} for m in variables["metrics"]],
         }
 
     @override
@@ -189,7 +189,7 @@ class ListSavedQueriesOperation(ProtocolOperation[EmptyVariables, List[SavedQuer
         return render_query(query, SavedQuery.gql_fragments())
 
     @override
-    def get_request_variables(self, environment_id: int, **kwargs: ListEntitiesOperationVariables) -> Dict[str, Any]:
+    def get_request_variables(self, environment_id: int, variables: EmptyVariables) -> Dict[str, Any]:
         return {"environmentId": environment_id}
 
     @override
@@ -199,7 +199,7 @@ class ListSavedQueriesOperation(ProtocolOperation[EmptyVariables, List[SavedQuer
 
 def get_query_request_variables(environment_id: int, params: QueryParameters) -> Dict[str, Any]:
     """Get the GraphQL request variables for a given set of query parameters."""
-    strict_params = validate_query_parameters(params)  # type: ignore
+    strict_params = validate_query_parameters(params)
 
     shared_vars = {
         "environmentId": environment_id,
@@ -266,9 +266,8 @@ class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
         return query
 
     @override
-    def get_request_variables(self, environment_id: int, **kwargs: QueryParameters) -> Dict[str, Any]:
-        # TODO: fix typing
-        return get_query_request_variables(environment_id, kwargs)  # type: ignore
+    def get_request_variables(self, environment_id: int, variables: QueryParameters) -> Dict[str, Any]:
+        return get_query_request_variables(environment_id, variables)
 
     @override
     def parse_response(self, data: Dict[str, Any]) -> QueryId:
@@ -301,11 +300,11 @@ class GetQueryResultOperation(ProtocolOperation[GetQueryResultVariables, QueryRe
         return render_query(query, QueryResult.gql_fragments())
 
     @override
-    def get_request_variables(self, environment_id: int, **kwargs: GetQueryResultVariables) -> Dict[str, Any]:
+    def get_request_variables(self, environment_id: int, variables: GetQueryResultVariables) -> Dict[str, Any]:
         return {
             "environmentId": environment_id,
-            "queryId": kwargs["query_id"],
-            "pageNum": kwargs.get("page_num", 1),
+            "queryId": variables["query_id"],
+            "pageNum": variables.get("page_num", 1),
         }
 
     @override
@@ -346,13 +345,12 @@ class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
         return query
 
     @override
-    def get_request_variables(self, environment_id: int, **kwargs: QueryParameters) -> Dict[str, Any]:
-        # TODO: fix typing
-        return get_query_request_variables(environment_id, kwargs)  # type: ignore
+    def get_request_variables(self, environment_id: int, variables: QueryParameters) -> Dict[str, Any]:
+        return get_query_request_variables(environment_id, variables)
 
     @override
     def parse_response(self, data: Dict[str, Any]) -> str:
-        return data["compileSql"]["sql"]
+        return cast(str, data["compileSql"]["sql"])
 
 
 class GraphQLProtocol:

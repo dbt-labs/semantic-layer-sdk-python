@@ -17,7 +17,7 @@ class SemanticLayerError(RuntimeError):
 class TimeoutError(SemanticLayerError):
     """Raise whenever a request times out."""
 
-    def __init__(self, *args, timeout_s: float, **kwargs) -> None:
+    def __init__(self, *, timeout_s: float, **_kwargs: object) -> None:
         """Initialize the timeout error.
 
         Args:

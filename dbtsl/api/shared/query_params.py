@@ -112,23 +112,26 @@ def validate_query_parameters(
 
         order_by = [validate_order_by(known_metrics, known_group_bys, clause) for clause in params["order_by"]]
 
-    shared_params = {
-        "limit": params.get("limit"),
-        "order_by": order_by,
-        "where": params.get("where"),
-        "read_cache": params.get("read_cache", True),
-    }
+    limit = params.get("limit")
+    where = params.get("where")
+    read_cache = params.get("read_cache", True)
 
     if is_saved_query:
         return SavedQueryQueryParametersStrict(
             saved_query=params["saved_query"],
-            **shared_params,
+            limit=limit,
+            order_by=order_by,
+            where=where,
+            read_cache=read_cache,
         )
 
     return AdhocQueryParametersStrict(
         metrics=params.get("metrics"),
         group_by=params.get("group_by"),
-        **shared_params,
+        limit=limit,
+        order_by=order_by,
+        where=where,
+        read_cache=read_cache,
     )
 
 
