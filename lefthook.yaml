@@ -7,7 +7,9 @@ pre-commit:
       run: "hatch run dev:ruff check --fix"
       stage_fixed: true
     pyright:
-      run: "hatch run dev:basedpyright"
+      run: "hatch run dev:basedpyright dbtsl tests"
+    mypy:
+      run: "hatch run dev:python -m mypy dbtsl tests"
 
 commit-msg:
   scripts:

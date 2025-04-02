@@ -28,6 +28,7 @@ sync = ["gql[requests]>=3.5.0,<4.0.0"]
 dev = [
   "ruff",
   "basedpyright",
+  "mypy",
   "uv",
 ]
 test = [
