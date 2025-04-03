@@ -43,6 +43,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
             gql_factory=SyncGraphQLClient,
             adbc_factory=SyncADBCClient,
             timeout=timeout,
+            client_partner_source=client_partner_source
         )
 
     @contextmanager

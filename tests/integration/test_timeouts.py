@@ -44,6 +44,7 @@ def sync_client_factory(credentials: Credentials) -> TimeoutClientFactory:
             auth_token=credentials.token,
             host=credentials.host,
             timeout=timeout,
+            client_partner_source="dbt-e2e-tests",
         )
 
     return factory

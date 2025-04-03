@@ -51,7 +51,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
     def _extra_headers(cls, client_partner_source: Optional[str] = None) -> Dict[str, str]:
         headers = {"user-agent": env.PLATFORM.user_agent}
         if client_partner_source is not None:
-            headers["X-Dbt-Partner-Source"] = client_partner_source
+            headers["x-dbt-partner-source"] = client_partner_source
         return headers
 
     def __init__(  # noqa: D107

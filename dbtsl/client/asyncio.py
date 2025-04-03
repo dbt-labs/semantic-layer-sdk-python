@@ -43,6 +43,7 @@ class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, Async
             gql_factory=AsyncGraphQLClient,
             adbc_factory=AsyncADBCClient,
             timeout=timeout,
+            client_partner_source=client_partner_source
         )
 
     @asynccontextmanager
