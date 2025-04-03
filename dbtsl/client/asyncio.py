@@ -26,6 +26,7 @@ class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, Async
         auth_token: str,
         host: str,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ) -> None:
         """Initialize the Semantic Layer client.
 

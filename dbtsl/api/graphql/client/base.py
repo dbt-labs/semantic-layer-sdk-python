@@ -146,6 +146,7 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ) -> TClient:
         """Initialize the Semantic Layer client.
 
@@ -155,5 +156,6 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
             auth_token: the API auth token
             url_format: the URL format string to construct the final URL with
             timeout: `TimeoutOptions` or total timeout
+            client_partner_source: Pass a dbt partner source header for traffic source tracking
         """
         pass
