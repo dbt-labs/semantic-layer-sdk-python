@@ -40,6 +40,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
         gql_factory: GraphQLClientFactory[TGQLClient],
         adbc_factory: ADBCClientFactory[TADBCClient],
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ) -> None:
         """Initialize the Semantic Layer client.
 
@@ -50,6 +51,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             gql_factory: class of the underlying GQL client
             adbc_factory: class of the underlying ADBC client
             timeout: `TimeoutOptions` or total timeout for the underlying GraphQL client.
+            client_partner_source: Pass a dbt partner source header for traffic source tracking
         """
         self._has_session = False
 
@@ -61,6 +63,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             auth_token=auth_token,
             url_format=env.GRAPHQL_URL_FORMAT,
             timeout=timeout,
+            client_partner_source=client_partner_source,
         )
         self._adbc = adbc_factory(
             server_host=host,

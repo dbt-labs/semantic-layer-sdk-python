@@ -38,6 +38,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ):
         """Initialize the metadata client.
 
@@ -49,11 +50,12 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
             timeout: TimeoutOptions or total timeout (in seconds) for all GraphQL requests.
+            client_partner_source: Pass a dbt partner source header for traffic source tracking
 
         NOTE: If `timeout` is a `TimeoutOptions`, the `tls_close_timeout` will not be used, since
         `requests` does not support TLS termination timeouts.
         """
-        super().__init__(server_host, environment_id, auth_token, url_format, timeout)
+        super().__init__(server_host, environment_id, auth_token, url_format, timeout, client_partner_source)
 
     @override
     def _create_transport(self, url: str, headers: Dict[str, str]) -> RequestsHTTPTransport:

@@ -20,6 +20,7 @@ async def async_client(credentials: Credentials) -> AsyncIterator[AsyncSemanticL
         environment_id=credentials.environment_id,
         auth_token=credentials.token,
         host=credentials.host,
+        client_partner_source="dbt-e2e-tests",
     )
     async with client.session():
         yield client
@@ -31,6 +32,7 @@ def sync_client(credentials: Credentials) -> Iterator[SyncSemanticLayerClient]:
         environment_id=credentials.environment_id,
         auth_token=credentials.token,
         host=credentials.host,
+        client_partner_source="dbt-e2e-tests",
     )
     with client.session():
         yield client

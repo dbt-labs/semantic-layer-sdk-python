@@ -15,6 +15,7 @@ class SyncSemanticLayerClient:
         auth_token: str,
         host: str,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ) -> None: ...
     @overload
     def compile_sql(

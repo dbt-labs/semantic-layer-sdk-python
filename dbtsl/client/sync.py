@@ -26,6 +26,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
         auth_token: str,
         host: str,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ) -> None:
         """Initialize the Semantic Layer client.
 
@@ -42,6 +43,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
             gql_factory=SyncGraphQLClient,
             adbc_factory=SyncADBCClient,
             timeout=timeout,
+            client_partner_source=client_partner_source,
         )
 
     @contextmanager
