@@ -32,7 +32,7 @@ jobs:
         run: "hatch run dev:basedpyright dbtsl tests"
 
       - name: mypy
-        run: "hatch run dev:python -m mypy dbtsl tests"
+        run: "hatch run dev:python -m mypy dbtsl"
 
       - name: fetch server schema
         run: "hatch run dev:fetch-schema"
