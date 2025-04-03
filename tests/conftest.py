@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Union, cast
 
 import pytest
-from gql import Client, gql
 from dotenv import load_dotenv
+from gql import Client, gql
 from gql.utilities.serialize_variable_values import serialize_variable_values
 
 

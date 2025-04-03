@@ -50,6 +50,8 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
             timeout: TimeoutOptions or total timeout (in seconds) for all GraphQL requests.
+            client_partner_source: Pass a dbt partner source header for traffic source tracking
+
         NOTE: If `timeout` is a `TimeoutOptions`, the `tls_close_timeout` will not be used, since
         `requests` does not support TLS termination timeouts.
         """

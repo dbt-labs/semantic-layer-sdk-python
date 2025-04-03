@@ -61,6 +61,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
             timeout: TimeoutOptions or total timeout (in seconds) for all GraphQL requests.
+            client_partner_source: Pass a dbt partner source header for traffic source tracking
 
         NOTE: If `timeout` is a `TimeoutOptions`, the `connect_timeout` will not be used, due to
         limitations of `gql`'s `aiohttp` transport.
