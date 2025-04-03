@@ -48,10 +48,11 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         )
 
     @classmethod
-    def _extra_headers(cls) -> Dict[str, str]:
-        return {
-            "user-agent": env.PLATFORM.user_agent,
-        }
+    def _extra_headers(cls, client_partner_source: Optional[str] = None) -> Dict[str, str]:
+        headers = {"user-agent": env.PLATFORM.user_agent}
+        if client_partner_source is not None:
+            headers["X-Dbt-Partner-Source"] = client_partner_source
+        return headers
 
     def __init__(  # noqa: D107
         self,
@@ -60,6 +61,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ):
         self.environment_id = environment_id
 
@@ -79,7 +81,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
 
         headers = {
             "authorization": f"bearer {auth_token}",
-            **self._extra_headers(),
+            **self._extra_headers(client_partner_source),
         }
         transport = self._create_transport(url=server_url, headers=headers)
         self._gql = Client(transport=transport, execute_timeout=self.timeout.execute_timeout)
