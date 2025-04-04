@@ -1,5 +1,6 @@
 import base64
 import io
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, call
 
 import pyarrow as pa
@@ -8,7 +9,7 @@ from pytest_mock import MockerFixture
 
 from dbtsl.api.graphql.client.asyncio import AsyncGraphQLClient
 from dbtsl.api.graphql.client.sync import SyncGraphQLClient
-from dbtsl.api.graphql.protocol import GraphQLProtocol, ProtocolOperation
+from dbtsl.api.graphql.protocol import GetQueryResultVariables, GraphQLProtocol, ProtocolOperation
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
 # The following 2 tests are copies of each other since testing the same sync/async functionality is
@@ -43,8 +44,8 @@ async def test_async_query_multiple_pages(mocker: MockerFixture) -> None:
             arrow_result=base64.b64encode(byte_stream.getvalue()).decode("utf-8"),
         )
 
-    async def run_behavior(op: ProtocolOperation, query_id: QueryId, page_num: int) -> QueryResult:
-        return await gqr_behavior(query_id, page_num)
+    async def run_behavior(op: ProtocolOperation[Any, Any], raw_variables: GetQueryResultVariables) -> QueryResult:
+        return await gqr_behavior(raw_variables["query_id"], raw_variables.get("page_num"))
 
     cq_mock = mocker.patch.object(client, "create_query", return_value=query_id, new_callable=AsyncMock)
 
@@ -59,13 +60,13 @@ async def test_async_query_multiple_pages(mocker: MockerFixture) -> None:
 
     kwargs = {"metrics": ["m1", "m2"], "group_by": ["gb"], "limit": 1}
     async with client.session():
-        result_table = await client.query(**kwargs)
+        result_table = await client.query(**kwargs)  # pyright: ignore[reportUnknownVariableType]
 
     cq_mock.assert_awaited_once_with(**kwargs)
 
     run_mock.assert_has_awaits(
         [
-            call(GraphQLProtocol.get_query_result, query_id=query_id, page_num=1),
+            call(op=GraphQLProtocol.get_query_result, raw_variables={"query_id": query_id, "page_num": 1}),
         ]
     )
 
@@ -108,8 +109,8 @@ def test_sync_query_multiple_pages(mocker: MockerFixture) -> None:
             arrow_result=base64.b64encode(byte_stream.getvalue()).decode("utf-8"),
         )
 
-    def run_behavior(op: ProtocolOperation, query_id: QueryId, page_num: int) -> QueryResult:
-        return gqr_behavior(query_id, page_num)
+    def run_behavior(op: ProtocolOperation[Any, Any], raw_variables: GetQueryResultVariables) -> QueryResult:
+        return gqr_behavior(raw_variables["query_id"], raw_variables.get("page_num"))
 
     cq_mock = mocker.patch.object(client, "create_query", return_value=query_id)
 
@@ -125,13 +126,13 @@ def test_sync_query_multiple_pages(mocker: MockerFixture) -> None:
     kwargs = {"metrics": ["m1", "m2"], "group_by": ["gb"], "limit": 1}
 
     with client.session():
-        result_table = client.query(**kwargs)
+        result_table = client.query(**kwargs)  # pyright: ignore[reportUnknownVariableType]
 
     cq_mock.assert_called_once_with(**kwargs)
 
     run_mock.assert_has_calls(
         [
-            call(GraphQLProtocol.get_query_result, query_id=query_id, page_num=1),
+            call(op=GraphQLProtocol.get_query_result, raw_variables={"query_id": query_id, "page_num": 1}),
         ]
     )
 

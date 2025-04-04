@@ -20,7 +20,7 @@ class ADBCProtocol:
             return str(val)
 
         if isinstance(val, list):
-            list_str = ",".join(cls._serialize_val(list_val) for list_val in val)
+            list_str = ",".join(cls._serialize_val(list_val) for list_val in val)  # pyright: ignore[reportUnknownVariableType]
             return f"[{list_str}]"
 
         if isinstance(val, OrderByMetric):

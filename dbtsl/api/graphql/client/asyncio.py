@@ -21,7 +21,7 @@ from dbtsl.api.graphql.protocol import (
 from dbtsl.api.shared.query_params import QueryParameters
 from dbtsl.backoff import ExponentialBackoff
 from dbtsl.error import ConnectTimeoutError, ExecuteTimeoutError, QueryFailedError, RetryTimeoutError, TimeoutError
-from dbtsl.models.query import QueryId, QueryStatus
+from dbtsl.models.query import QueryStatus
 
 # aiohttp only started distinguishing between read and connect timeouts after version 3.10
 # If the user is using an older version, we fall back to considering them both the same thing
@@ -30,13 +30,13 @@ try:
 
     AiohttpServerTimeout = ServerTimeoutError
     AiohttpConnectionTimeout = ConnectionTimeoutError
-    NEW_AIOHTTP = True
+    _new_aiohttp = True
 except ImportError:
     from asyncio import TimeoutError as AsyncioTimeoutError
 
     AiohttpServerTimeout = AsyncioTimeoutError
     AiohttpConnectionTimeout = AsyncioTimeoutError
-    NEW_AIOHTTP = False
+    _new_aiohttp = False
 
 
 class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]):
@@ -75,7 +75,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
             # The following type ignore is OK since gql annotated `timeout` as an `Optional[int]`,
             # but aiohttp allows `float` timeouts
             # See: https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientTimeout
-            timeout=self.timeout.execute_timeout,  # pyright: ignore[reportArgumentType]
+            timeout=self.timeout.execute_timeout,  # type: ignore
             ssl_close_timeout=self.timeout.tls_close_timeout,
         )
 
@@ -95,21 +95,21 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
             yield self
             self._gql_session_unsafe = None
 
-    async def _run(self, op: ProtocolOperation[TVariables, TResponse], **kwargs: TVariables) -> TResponse:
+    async def _run(self, op: ProtocolOperation[TVariables, TResponse], raw_variables: TVariables) -> TResponse:
         """Run a `ProtocolOperation`."""
         raw_query = op.get_request_text()
-        variables = op.get_request_variables(environment_id=self.environment_id, **kwargs)
+        variables = op.get_request_variables(environment_id=self.environment_id, variables=raw_variables)
         gql_query = gql(raw_query)
 
         try:
-            res = await self._gql_session.execute(gql_query, variable_values=variables)
+            res = await self._gql_session.execute(gql_query, variable_values=variables)  # type: ignore
         except AiohttpConnectionTimeout as err:
-            if NEW_AIOHTTP:
+            if _new_aiohttp:
                 raise ConnectTimeoutError(timeout_s=self.timeout.connect_timeout) from err
             raise TimeoutError(timeout_s=self.timeout.total_timeout) from err
         # I found out by trial and error that aiohttp can raise all these different kinds of errors
         # depending on where the timeout happened in the stack (aiohttp, anyio, asyncio)
-        except (AiohttpServerTimeout, asyncio.TimeoutError, BuiltinTimeoutError) as err:
+        except (AiohttpServerTimeout, asyncio.TimeoutError, BuiltinTimeoutError) as err:  # type: ignore
             raise ExecuteTimeoutError(timeout_s=self.timeout.execute_timeout) from err
         except Exception as err:
             raise self._refine_err(err)
@@ -118,10 +118,9 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
 
     async def _poll_until_complete(
         self,
-        query_id: QueryId,
         poll_op: ProtocolOperation[TJobStatusVariables, TJobStatusResult],
+        variables: TJobStatusVariables,
         backoff: Optional[ExponentialBackoff] = None,
-        **kwargs,
     ) -> TJobStatusResult:
         """Poll for a job's results until it is in a completed state (SUCCESSFUL or FAILED)."""
         if backoff is None:
@@ -132,8 +131,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
 
         start_s = time.time()
         for sleep_ms in backoff.iter_ms():
-            kwargs["query_id"] = query_id
-            qr = await self._run(poll_op, **kwargs)
+            qr = await self._run(op=poll_op, raw_variables=variables)
             if qr.status in (QueryStatus.SUCCESSFUL, QueryStatus.FAILED):
                 return qr
 
@@ -149,7 +147,10 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
     async def query(self, **params: Unpack[QueryParameters]) -> "pa.Table":
         """Query the Semantic Layer."""
         query_id = await self.create_query(**params)
-        first_page_results = await self._poll_until_complete(query_id, self.PROTOCOL.get_query_result, page_num=1)
+        first_page_results = await self._poll_until_complete(
+            poll_op=self.PROTOCOL.get_query_result,
+            variables={"query_id": query_id, "page_num": 1},
+        )
         if first_page_results.status != QueryStatus.SUCCESSFUL:
             raise QueryFailedError()
 
@@ -164,5 +165,5 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         ]
         all_page_results = [first_page_results] + await asyncio.gather(*tasks)
         tables = [r.result_table for r in all_page_results]
-        final_table = pa.concat_tables(tables)
+        final_table = pa.concat_tables(tables)  # type: ignore
         return final_table

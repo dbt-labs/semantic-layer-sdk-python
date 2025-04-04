@@ -1,3 +1,5 @@
+# mypy: disable-error-code="misc"
+
 from contextlib import AbstractContextManager
 from typing import Iterator, List, Optional, Union
 

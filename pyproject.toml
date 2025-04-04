@@ -26,8 +26,10 @@ dependencies = [
 async = ["gql[aiohttp]>=3.5.0,<4.0.0"]
 sync = ["gql[requests]>=3.5.0,<4.0.0"]
 dev = [
+  "pyarrow-stubs",
   "ruff",
   "basedpyright",
+  "mypy",
   "uv",
 ]
 test = [
@@ -126,10 +128,23 @@ PIP_EXTRA_INDEX_URL = "https://pypi.org/simple/"
 asyncio_mode = "auto"
 
 [tool.pyright]
-# TODO: we'd love to enable "strict" typechecking, but 
-# pyarrow not having type stubs makes that really hard
-typeCheckingMode = "standard"
+typeCheckingMode = "strict"
 venv = ".venv/"
+
+[[tool.pyright.executionEnvironments]]
+root = "tests"
+# Tests use private methods and assign inappropriate values to some
+# properties to check our error handling capabilities etc. To avoid
+# having to ignore everything, we disable some checks
+reportPrivateUsage = false
+reportAssignmentType = false
+reportAny = false
+reportCallIssue = false
+reportArgumentType = false
+reportUnknownMemberType = false
+
+[tool.mypy]
+strict = true
 
 [tool.black]
 line-length = 120

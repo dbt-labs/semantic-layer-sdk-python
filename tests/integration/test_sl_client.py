@@ -82,14 +82,13 @@ async def test_client_metadata(subtests: SubTests, client: BothClients) -> None:
 @pytest.mark.parametrize("query", TEST_QUERIES)
 async def test_client_query(api: str, query: QueryParameters, client: BothClients) -> None:
     client._method_map["query"] = api  # type: ignore
-    # TODO: fix typing on client.query
     table = await maybe_await(client.query(**query))  # type: ignore
-    assert len(table) > 0
+    assert len(table) > 0  # type: ignore
 
 
 @pytest.mark.parametrize("query", TEST_QUERIES)
 async def test_client_compile_sql_adhoc_query(query: QueryParameters, client: BothClients) -> None:
     # TODO: fix typing on client.compile_sql
     sql = await maybe_await(client.compile_sql(**query))  # type: ignore
-    assert len(sql) > 0
+    assert len(sql) > 0  # type: ignore
     assert "SELECT" in sql

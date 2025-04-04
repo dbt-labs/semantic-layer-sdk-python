@@ -2,7 +2,7 @@ from typing import Callable
 
 import pytest
 
-from dbtsl.api.graphql.client.asyncio import NEW_AIOHTTP  # pyright: ignore[reportAttributeAccessIssue]
+from dbtsl.api.graphql.client.asyncio import _new_aiohttp  # type: ignore
 from dbtsl.client.asyncio import AsyncSemanticLayerClient
 from dbtsl.client.sync import SyncSemanticLayerClient
 from dbtsl.error import ConnectTimeoutError, ExecuteTimeoutError, TimeoutError
@@ -92,5 +92,5 @@ async def test_execute_timeout(client_factory: TimeoutClientFactory) -> None:
             await maybe_await(client.metrics())
 
     # Narrow down the error in case we can do it
-    if isinstance(client, SyncSemanticLayerClient) or NEW_AIOHTTP:
+    if isinstance(client, SyncSemanticLayerClient) or _new_aiohttp:
         assert isinstance(exc_info.value, ExecuteTimeoutError)

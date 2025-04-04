@@ -28,15 +28,21 @@ class FlexibleEnumMeta(EnumMeta):
 
     UNKNOWN = "UNKNOWN"
 
-    def __new__(metacls: Type["FlexibleEnumMeta"], name: str, bases: Tuple[Type], namespace: Dict[str, Any], **kwargs):
+    def __new__(
+        metacls: Type["FlexibleEnumMeta"],
+        name: str,
+        bases: Tuple[Type[object]],
+        namespace: Dict[str, Any],
+        **_kwargs: object,
+    ) -> "FlexibleEnumMeta":
         """Overwrite the _missing_ method of enum classes."""
         msg = f"Class {name} needs UNKNOWN attribute with 'UNKNOWN' string value"
         assert namespace.get("UNKNOWN", None) == "UNKNOWN", msg
 
         metacls._subclass_registry.add(name)
 
-        newclass = super().__new__(metacls, name, bases, namespace)  # pyright: ignore[reportArgumentType]
-        setattr(newclass, "_missing_", classmethod(metacls._missing_))  # pyright: ignore[reportArgumentType]
+        newclass = super().__new__(metacls, name, bases, namespace)  # type: ignore
+        setattr(newclass, "_missing_", classmethod(metacls._missing_))  # type: ignore
         return newclass
 
     def __getitem__(cls, name: str) -> Any:
@@ -89,9 +95,7 @@ class BaseModel(DataClassDictMixin):
             for field in fields(subclass):
                 camel_name = snake_case_to_camel_case(field.name)
                 if field.name != camel_name:
-                    opts = field_options(alias=camel_name)
-                    if field.metadata is not None:
-                        opts = {**opts, **field.metadata}
+                    opts = {**field_options(alias=camel_name), **field.metadata}
                     field.metadata = MappingProxyType(opts)
 
                 if cls.DEPRECATED in field.metadata:
@@ -115,7 +119,7 @@ class DeprecatedMixin:
         """The deprecation message that will get displayed."""
         return f"{cls.__name__} is deprecated"
 
-    def __init__(self, *args, **kwargs) -> None:  # noqa: D107
+    def __init__(self, *_args: object, **_kwargs: object) -> None:  # noqa: D107
         warnings.warn(self._deprecation_message(), DeprecationWarning)
         super(DeprecatedMixin, self).__init__()
 

@@ -6,7 +6,8 @@ from dbtsl.api.adbc.client.base import ADBCClientFactory, BaseADBCClient
 from dbtsl.api.graphql.client.base import BaseGraphQLClient, GraphQLClientFactory
 from dbtsl.timeout import TimeoutOptions
 
-TGQLClient = TypeVar("TGQLClient", bound=BaseGraphQLClient)
+# TODO: have to type ignore, see: https://github.com/microsoft/pyright/issues/3497
+TGQLClient = TypeVar("TGQLClient", bound=BaseGraphQLClient)  # type: ignore
 TADBCClient = TypeVar("TADBCClient", bound=BaseADBCClient)
 
 ADBC = "adbc"
@@ -86,7 +87,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
         assert target_str in (ADBC, GRAPHQL)
         target = self._gql if target_str == GRAPHQL else self._adbc
 
-        attr_val = getattr(target, attr, None)
+        attr_val = getattr(target, attr, None)  # pyright: ignore[reportUnknownArgumentType]
 
         if attr_val is None or not callable(attr_val):
             raise AttributeError()

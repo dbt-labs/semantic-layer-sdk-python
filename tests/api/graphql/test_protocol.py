@@ -7,7 +7,7 @@ from dbtsl.api.graphql.protocol import GraphQLProtocol
 from ...conftest import QueryValidator
 from ...query_test_cases import TEST_QUERIES
 
-VARIABLES = {
+VARIABLES: dict[str, list[dict[str, Any]]] = {
     "metrics": [{}],
     "dimensions": [{"metrics": ["m"]}],
     "measures": [{"metrics": ["m"]}],
@@ -48,5 +48,5 @@ def test_queries_are_valid(test_case: TestCase, validate_query: QueryValidator) 
 
     op = getattr(GraphQLProtocol, op_name)
     query = op.get_request_text()
-    variable_values = op.get_request_variables(environment_id=123, **raw_variables)
+    variable_values = op.get_request_variables(environment_id=123, variables=raw_variables)
     validate_query(query, variable_values)
