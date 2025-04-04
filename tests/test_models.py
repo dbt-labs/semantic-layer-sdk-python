@@ -13,6 +13,8 @@ import dbtsl.models as ALL_EXPORTED_MODELS
 from dbtsl.api.graphql.util import normalize_query
 from dbtsl.api.shared.query_params import (
     AdhocQueryParametersStrict,
+    GroupByParam,
+    GroupByType,
     OrderByGroupBy,
     OrderByMetric,
     QueryParameters,
@@ -287,5 +289,31 @@ def test_validate_query_params_adhoc_and_saved_query() -> None:
 
 def test_validate_query_params_no_query() -> None:
     p: QueryParameters = {"limit": 1, "where": ["1=1"], "order_by": ["a"], "read_cache": False}
+    with pytest.raises(ValueError):
+        validate_query_parameters(p)
+
+
+def test_validate_query_params_group_by_param_dimension() -> None:
+    p: QueryParameters = {
+        "group_by": [GroupByParam(name="a", grain="day", type=GroupByType.DIMENSION)],
+        "order_by": ["a"],
+    }
+    r = validate_query_parameters(p)
+    assert isinstance(r, AdhocQueryParametersStrict)
+    assert r.group_by == [GroupByParam(name="a", grain="day", type=GroupByType.DIMENSION)]
+
+
+def test_validate_query_params_group_by_param_entity() -> None:
+    p: QueryParameters = {"group_by": [GroupByParam(name="a", grain="day", type=GroupByType.ENTITY)], "order_by": ["a"]}
+    r = validate_query_parameters(p)
+    assert isinstance(r, AdhocQueryParametersStrict)
+    assert r.group_by == [GroupByParam(name="a", grain="day", type=GroupByType.ENTITY)]
+
+
+def test_validate_missing_query_params_group_by_param() -> None:
+    p: QueryParameters = {
+        "group_by": [GroupByParam(name="b", grain="day", type=GroupByType.DIMENSION)],
+        "order_by": ["a"],
+    }
     with pytest.raises(ValueError):
         validate_query_parameters(p)

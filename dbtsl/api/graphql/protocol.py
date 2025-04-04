@@ -220,7 +220,12 @@ def get_query_request_variables(environment_id: int, params: QueryParameters) ->
         return {
             "savedQuery": None,
             "metrics": [{"name": m} for m in strict_params.metrics] if strict_params.metrics is not None else None,
-            "groupBy": [{"name": g} for g in strict_params.group_by] if strict_params.group_by is not None else None,
+            "groupBy": [
+                {"name": g} if isinstance(g, str) else {"name": g.name, "timeGranularity": g.grain}
+                for g in strict_params.group_by
+            ]
+            if strict_params.group_by is not None
+            else None,
             **shared_vars,
         }
 
