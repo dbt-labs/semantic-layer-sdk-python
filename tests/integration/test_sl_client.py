@@ -46,12 +46,18 @@ async def client(
     return async_client
 
 
+@pytest.fixture(scope="module")
+def client_lazy(client: BothClients) -> Iterator[BothClients]:
+    """Get the client, set it as lazy and unset at the end of the test."""
+    client.lazy = True
+    yield client
+    client.lazy = False
+
+
 pytestmark = pytest.mark.asyncio(scope="module")
 
 
-# NOTE: grouping all these tests in one because they depend on each other, i.e
-# dimensions depends on metrics etc
-async def test_client_metadata(subtests: SubTests, client: BothClients) -> None:
+async def test_client_metadata_eager(subtests: SubTests, client: BothClients) -> None:
     with subtests.test("metrics"):
         metrics = await maybe_await(client.metrics())
         assert len(metrics) > 0
@@ -62,6 +68,11 @@ async def test_client_metadata(subtests: SubTests, client: BothClients) -> None:
         dims = await maybe_await(client.dimensions(metrics=[metric.name]))
         assert len(dims) > 0
         assert dims == metric.dimensions
+
+    with subtests.test("measures"):
+        measures = await maybe_await(client.measures(metrics=[metric.name]))
+        assert len(measures) > 0
+        assert measures == metric.measures
 
     with subtests.test("entities"):
         entities = await maybe_await(client.entities(metrics=[metric.name]))
@@ -75,6 +86,53 @@ async def test_client_metadata(subtests: SubTests, client: BothClients) -> None:
 
     with subtests.test("saved_queries"):
         sqs = await maybe_await(client.saved_queries())
+        assert len(sqs) > 0
+
+
+async def test_client_metadata_lazy(subtests: SubTests, client_lazy: BothClients) -> None:
+    with subtests.test("metrics"):
+        metrics = await maybe_await(client_lazy.metrics())
+        assert len(metrics) > 0
+
+    metric = metrics[0]
+
+    with subtests.test("dimensions"):
+        assert len(metric.dimensions) == 0
+
+        model_dims = await maybe_await(metric.load_dimensions())
+        assert len(model_dims) > 0
+        assert model_dims == metric.dimensions
+
+        client_dims = await maybe_await(client_lazy.dimensions(metrics=[metric.name]))
+        assert client_dims == model_dims
+
+    with subtests.test("measures"):
+        assert len(metric.measures) == 0
+
+        model_measures = await maybe_await(metric.load_measures())
+        assert len(model_measures) > 0
+        assert model_measures == metric.measures
+
+        client_measures = await maybe_await(client_lazy.measures(metrics=[metric.name]))
+        assert client_measures == model_measures
+
+    with subtests.test("entities"):
+        assert len(metric.entities) == 0
+
+        model_entities = await maybe_await(metric.load_entities())
+        assert len(model_entities) > 0
+        assert model_entities == metric.entities
+
+        client_entities = await maybe_await(client_lazy.entities(metrics=[metric.name]))
+        assert client_entities == model_entities
+
+    with subtests.test("dimension_values"):
+        dimension = metric.dimensions[0]
+        dim_values = await maybe_await(client_lazy.dimension_values(metrics=[metric.name], group_by=dimension.name))
+        assert len(dim_values) > 0
+
+    with subtests.test("saved_queries"):
+        sqs = await maybe_await(client_lazy.saved_queries())
         assert len(sqs) > 0
 
 

@@ -101,6 +101,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         except Exception as err:
             raise self._refine_err(err)
 
+        res["_client"] = self
         return op.parse_response(res)
 
     def _poll_until_complete(

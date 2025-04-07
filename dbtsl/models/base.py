@@ -1,4 +1,5 @@
 import inspect
+import typing
 import warnings
 from dataclasses import dataclass, fields, is_dataclass
 from dataclasses import field as dc_field
@@ -13,6 +14,9 @@ from mashumaro import DataClassDictMixin, field_options
 from mashumaro.config import BaseConfig
 
 from dbtsl.api.graphql.util import normalize_query
+
+if typing.TYPE_CHECKING:
+    from dbtsl.api.graphql.client.base import BaseGraphQLClient
 
 
 def snake_case_to_camel_case(s: str) -> str:
@@ -133,13 +137,16 @@ class GraphQLFragment:
     lazy: bool
 
 
+@dataclass
 class GraphQLFragmentMixin:
     """Add this to any model that needs to be fetched from GraphQL."""
 
     # mark fields that should not be lazy with this
-    NOT_LAZY = "dbtsl_notlazy"
+    NOT_LAZY: ClassVar[str] = "dbtsl_notlazy"
 
     _subclass_registry: ClassVar[Set[Type["GraphQLFragmentMixin"]]] = set()
+
+    _client: "BaseGraphQLClient[Any, Any]"
 
     def __init_subclass__(cls) -> None:
         """Add subclasses to the subclass registry.
@@ -214,6 +221,9 @@ class GraphQLFragmentMixin:
         query_elements: List[str] = []
         dependencies: Set[GraphQLFragment] = set()
         for field in fields(cls):
+            if field.name == "_client":
+                continue
+
             field_lazy = lazy and GraphQLFragmentMixin.NOT_LAZY not in field.metadata
             frag_or_field = GraphQLFragmentMixin._get_fragments_for_field(
                 field.type,

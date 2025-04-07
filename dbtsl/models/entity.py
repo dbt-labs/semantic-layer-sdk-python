@@ -15,7 +15,7 @@ class EntityType(Enum, metaclass=FlexibleEnumMeta):
     UNIQUE = "UNIQUE"
 
 
-@dataclass(frozen=True)
+@dataclass
 class Entity(BaseModel, GraphQLFragmentMixin):
     """An entity."""
 

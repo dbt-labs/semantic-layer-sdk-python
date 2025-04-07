@@ -22,7 +22,7 @@ class QueryStatus(Enum, metaclass=FlexibleEnumMeta):
     FAILED = "FAILED"
 
 
-@dataclass(frozen=True)
+@dataclass
 class QueryResult(BaseModel, GraphQLFragmentMixin):
     """A query result containing its status, SQL and error/results."""
 
