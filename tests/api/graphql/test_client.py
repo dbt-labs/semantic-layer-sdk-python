@@ -20,7 +20,7 @@ from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
 async def test_async_query_multiple_pages(mocker: MockerFixture) -> None:
     """Test that querying a dataframe with multiple pages works."""
-    client = AsyncGraphQLClient(server_host="test", environment_id=0, auth_token="test")
+    client = AsyncGraphQLClient(server_host="test", environment_id=0, auth_token="test", lazy=False)
 
     query_id = QueryId("test-query-id")
     table = pa.Table.from_arrays(
@@ -85,7 +85,7 @@ async def test_async_query_multiple_pages(mocker: MockerFixture) -> None:
 @pytest.mark.filterwarnings("ignore::pytest_mock.PytestMockWarning")
 def test_sync_query_multiple_pages(mocker: MockerFixture) -> None:
     """Test that querying a dataframe with multiple pages works."""
-    client = SyncGraphQLClient(server_host="test", environment_id=0, auth_token="test")
+    client = SyncGraphQLClient(server_host="test", environment_id=0, auth_token="test", lazy=False)
 
     query_id = QueryId("test-query-id")
     table = pa.Table.from_arrays(

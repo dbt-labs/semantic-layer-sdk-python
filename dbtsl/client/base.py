@@ -41,6 +41,8 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
         gql_factory: GraphQLClientFactory[TGQLClient],
         adbc_factory: ADBCClientFactory[TADBCClient],
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        *,
+        lazy: bool,
     ) -> None:
         """Initialize the Semantic Layer client.
 
@@ -51,6 +53,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             gql_factory: class of the underlying GQL client
             adbc_factory: class of the underlying ADBC client
             timeout: `TimeoutOptions` or total timeout for the underlying GraphQL client.
+            lazy: `lazy` for the underlying GraphQL client
         """
         self._has_session = False
 
@@ -62,6 +65,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             auth_token=auth_token,
             url_format=env.GRAPHQL_URL_FORMAT,
             timeout=timeout,
+            lazy=lazy,
         )
         self._adbc = adbc_factory(
             server_host=host,
@@ -69,6 +73,16 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             auth_token=auth_token,
             url_format=env.ADBC_URL_FORMAT,
         )
+
+    @property
+    def lazy(self) -> bool:
+        """Whether metadata queries will be lazy or not."""
+        return self._gql.lazy
+
+    @lazy.setter
+    def lazy(self, v: bool) -> None:
+        """Set whether metadata queries will be lazy."""
+        self._gql.lazy = v
 
     def __getattr__(self, attr: str) -> Any:
         """Get methods from the underlying APIs.

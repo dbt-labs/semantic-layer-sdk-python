@@ -33,6 +33,7 @@ def test_render_query() -> None:
                 }
             }
             """,
+            lazy=False,
         ),
         GraphQLFragment(
             name="depFrag",
@@ -41,6 +42,7 @@ def test_render_query() -> None:
                 baz
             }
             """,
+            lazy=False,
         ),
     ]
 

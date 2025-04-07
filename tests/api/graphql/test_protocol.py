@@ -47,6 +47,6 @@ def test_queries_are_valid(test_case: TestCase, validate_query: QueryValidator) 
     op_name, raw_variables = test_case
 
     op = getattr(GraphQLProtocol, op_name)
-    query = op.get_request_text()
+    query = op.get_request_text(lazy=False)
     variable_values = op.get_request_variables(environment_id=123, variables=raw_variables)
     validate_query(query, variable_values)

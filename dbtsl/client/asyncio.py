@@ -26,6 +26,8 @@ class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, Async
         auth_token: str,
         host: str,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        *,
+        lazy: bool = False,
     ) -> None:
         """Initialize the Semantic Layer client.
 
@@ -34,6 +36,7 @@ class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, Async
             auth_token: the API auth token
             host: the Semantic Layer API host
             timeout: `TimeoutOptions` or total timeout for the underlying GraphQL client.
+            lazy: if true, nested metadata queries will be need to be explicitly populated on-demand.
         """
         super().__init__(
             environment_id=environment_id,
@@ -42,6 +45,7 @@ class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, Async
             gql_factory=AsyncGraphQLClient,
             adbc_factory=AsyncADBCClient,
             timeout=timeout,
+            lazy=lazy,
         )
 
     @asynccontextmanager

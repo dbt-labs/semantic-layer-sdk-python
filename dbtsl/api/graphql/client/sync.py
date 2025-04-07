@@ -38,6 +38,8 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        *,
+        lazy: bool,
     ):
         """Initialize the metadata client.
 
@@ -49,11 +51,12 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
             timeout: TimeoutOptions or total timeout (in seconds) for all GraphQL requests.
+            lazy: Whether to lazy load large subfields
 
         NOTE: If `timeout` is a `TimeoutOptions`, the `tls_close_timeout` will not be used, since
         `requests` does not support TLS termination timeouts.
         """
-        super().__init__(server_host, environment_id, auth_token, url_format, timeout)
+        super().__init__(server_host, environment_id, auth_token, url_format, timeout, lazy=lazy)
 
     @override
     def _create_transport(self, url: str, headers: Dict[str, str]) -> RequestsHTTPTransport:
@@ -85,7 +88,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
 
     def _run(self, op: ProtocolOperation[TVariables, TResponse], raw_variables: TVariables) -> TResponse:
         """Run a `ProtocolOperation`."""
-        raw_query = op.get_request_text()
+        raw_query = op.get_request_text(lazy=self.lazy)
         variables = op.get_request_variables(environment_id=self.environment_id, variables=raw_variables)
         gql_query = gql(raw_query)
 

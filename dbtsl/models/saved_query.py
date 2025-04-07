@@ -3,6 +3,7 @@ from dataclasses import field as dc_field
 from enum import Enum
 from typing import List, Optional
 
+from dbtsl.models.base import NOT_LAZY_META as NOT_LAZY
 from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
 from dbtsl.models.time import DatePart, TimeGranularity
 
@@ -70,9 +71,9 @@ class SavedQueryWhereParam(BaseModel, GraphQLFragmentMixin):
 class SavedQueryQueryParams(BaseModel, GraphQLFragmentMixin):
     """The parameters of a saved query."""
 
-    metrics: List[SavedQueryMetricParam]
-    group_by: List[SavedQueryGroupByParam]
-    where: Optional[SavedQueryWhereParam]
+    metrics: List[SavedQueryMetricParam] = dc_field(metadata=NOT_LAZY)
+    group_by: List[SavedQueryGroupByParam] = dc_field(metadata=NOT_LAZY)
+    where: Optional[SavedQueryWhereParam] = dc_field(metadata=NOT_LAZY)
 
 
 @dataclass(frozen=True)
@@ -83,4 +84,4 @@ class SavedQuery(BaseModel, GraphQLFragmentMixin):
     description: Optional[str]
     label: Optional[str]
     query_params: SavedQueryQueryParams
-    exports: List[Export]
+    exports: List[Export] = dc_field(metadata=NOT_LAZY)
