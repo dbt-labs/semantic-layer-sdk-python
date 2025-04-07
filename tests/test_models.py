@@ -111,8 +111,15 @@ class B(BaseModel, GraphQLFragmentMixin):
     lazy_a: Optional[A] = None
     many_a: List[A] = dc.field(default_factory=list)
 
+    def load_lazy_a(self) -> A:
+        return A(foo_bar="a")
 
-def test_graphql_fragment_mixin_lazy_fields_have_default() -> None:
+    def load_many_a(self) -> List[A]:
+        return [A(foo_bar="a1"), A(foo_bar="a2")]
+
+
+def test_graphql_fragment_mixin_lazy_loadable_fields_properties() -> None:
+    errors: List[str] = []
     for model in GraphQLFragmentMixin._subclass_registry:
         for field in dc.fields(model):
             origin = get_type_origin(field.type)
@@ -129,9 +136,16 @@ def test_graphql_fragment_mixin_lazy_fields_have_default() -> None:
                 continue
             # we know the field is not marked as NOT_LAZY
 
-            assert (
-                field.default != dc.MISSING or field.default_factory != dc.MISSING
-            ), f"{model.__name__}.{field.name} is optional but has no default"
+            field_name = f"{model.__name__}.{field.name}"
+
+            if field.default == dc.MISSING and field.default_factory == dc.MISSING:
+                errors.append(f"{field_name} is lazy-loadable but has no default")
+
+            if not hasattr(model, f"load_{field.name}"):
+                errors.append(f"{field_name} is lazy-loadable but has no loader method")
+
+    error_msg = "\n".join(errors)
+    assert len(errors) == 0, error_msg
 
 
 def test_graphql_fragment_mixin_eager() -> None:

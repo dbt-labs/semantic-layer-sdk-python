@@ -184,8 +184,8 @@ known-first-party = ["dbtsl"]
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore docs for test files
-"*_test.py" = ["D101", "D103"]
-"tests/**" = ["D101", "D103"]
+"*_test.py" = ["D101", "D102", "D103"]
+"tests/**" = ["D101", "D102", "D103"]
 
 # Ignore prints in examples
 "examples/**" = ["T201", "D103"]

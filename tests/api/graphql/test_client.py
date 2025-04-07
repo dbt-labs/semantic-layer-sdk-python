@@ -36,6 +36,7 @@ async def test_async_query_multiple_pages(mocker: MockerFixture) -> None:
             writer.write_table(call_table)
 
         return QueryResult(
+            _client=client,
             query_id=query_id,
             status=QueryStatus.SUCCESSFUL,
             sql=None,
@@ -101,6 +102,7 @@ def test_sync_query_multiple_pages(mocker: MockerFixture) -> None:
             writer.write_table(call_table)
 
         return QueryResult(
+            _client=client,
             query_id=query_id,
             status=QueryStatus.SUCCESSFUL,
             sql=None,

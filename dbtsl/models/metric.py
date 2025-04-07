@@ -27,7 +27,7 @@ QUERYABLE_GRANULARITIES_DEPRECATION = (
 )
 
 
-@dataclass(frozen=True)
+@dataclass
 class Metric(BaseModel, GraphQLFragmentMixin):
     """A metric."""
 
