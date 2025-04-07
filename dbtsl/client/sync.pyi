@@ -17,7 +17,16 @@ class SyncSemanticLayerClient:
         auth_token: str,
         host: str,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        lazy: bool = False,
     ) -> None: ...
+    @property
+    def lazy(self) -> bool:
+        """Whether metadata queries will be lazy or not."""
+        ...
+    @lazy.setter
+    def lazy(self, v: bool) -> None:
+        """Set whether metadata queries will be lazy."""
+        ...
     @overload
     def compile_sql(
         self,

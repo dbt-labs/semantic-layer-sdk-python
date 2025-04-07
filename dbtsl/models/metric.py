@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 
+from dbtsl.models.base import NOT_LAZY_META as NOT_LAZY
 from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
 from dbtsl.models.dimension import Dimension
 from dbtsl.models.entity import Entity
@@ -33,12 +34,15 @@ class Metric(BaseModel, GraphQLFragmentMixin):
     name: str
     description: Optional[str]
     type: MetricType
-    dimensions: List[Dimension]
-    measures: List[Measure]
-    entities: List[Entity]
     queryable_granularities: List[TimeGranularity] = field(
-        metadata={BaseModel.DEPRECATED: QUERYABLE_GRANULARITIES_DEPRECATION}
+        metadata={
+            BaseModel.DEPRECATED: QUERYABLE_GRANULARITIES_DEPRECATION,
+        }
     )
-    queryable_time_granularities: List[str]
+    queryable_time_granularities: List[str] = field(metadata=NOT_LAZY)
     label: str
     requires_metric_time: bool
+
+    dimensions: List[Dimension] = field(default_factory=list)
+    measures: List[Measure] = field(default_factory=list)
+    entities: List[Entity] = field(default_factory=list)

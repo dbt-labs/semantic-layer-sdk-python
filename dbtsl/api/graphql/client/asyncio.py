@@ -49,6 +49,8 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        *,
+        lazy: bool,
     ):
         """Initialize the metadata client.
 
@@ -60,12 +62,13 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
             timeout: TimeoutOptions or total timeout (in seconds) for all GraphQL requests.
+            lazy: Whether to lazy load large subfields
 
         NOTE: If `timeout` is a `TimeoutOptions`, the `connect_timeout` will not be used, due to
         limitations of `gql`'s `aiohttp` transport.
         See: https://github.com/graphql-python/gql/blob/b066e8944b0da0a4bbac6c31f43e5c3c7772cd51/gql/transport/aiohttp.py#L110
         """
-        super().__init__(server_host, environment_id, auth_token, url_format, timeout)
+        super().__init__(server_host, environment_id, auth_token, url_format, timeout, lazy=lazy)
 
     @override
     def _create_transport(self, url: str, headers: Dict[str, str]) -> AIOHTTPTransport:
@@ -97,7 +100,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
 
     async def _run(self, op: ProtocolOperation[TVariables, TResponse], raw_variables: TVariables) -> TResponse:
         """Run a `ProtocolOperation`."""
-        raw_query = op.get_request_text()
+        raw_query = op.get_request_text(lazy=self.lazy)
         variables = op.get_request_variables(environment_id=self.environment_id, variables=raw_variables)
         gql_query = gql(raw_query)
 

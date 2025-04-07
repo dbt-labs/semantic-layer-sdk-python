@@ -59,8 +59,11 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        *,
+        lazy: bool,
     ):
         self.environment_id = environment_id
+        self.lazy = lazy
 
         url_format = url_format or self.DEFAULT_URL_FORMAT
         server_url = url_format.format(server_host=server_host)
@@ -145,6 +148,8 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        *,
+        lazy: bool,
     ) -> TClient:
         """Initialize the Semantic Layer client.
 
@@ -154,5 +159,6 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
             auth_token: the API auth token
             url_format: the URL format string to construct the final URL with
             timeout: `TimeoutOptions` or total timeout
+            lazy: lazy load large fields
         """
         pass

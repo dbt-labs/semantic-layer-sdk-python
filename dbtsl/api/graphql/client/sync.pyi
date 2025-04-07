@@ -24,6 +24,8 @@ class SyncGraphQLClient:
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        *,
+        lazy: bool,
     ) -> None: ...
     def session(self) -> AbstractContextManager[Iterator[Self]]: ...
     @property

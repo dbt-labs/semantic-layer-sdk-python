@@ -46,7 +46,7 @@ class ProtocolOperation(Generic[TVariables, TResponse], ABC):
     """Base class for GraphQL API operations."""
 
     @abstractmethod
-    def get_request_text(self) -> str:
+    def get_request_text(self, *, lazy: bool) -> str:
         """Get the GraphQL request text."""
         raise NotImplementedError()
 
@@ -71,7 +71,7 @@ class ListMetricsOperation(ProtocolOperation[EmptyVariables, List[Metric]]):
     """List all available metrics in available in the Semantic Layer."""
 
     @override
-    def get_request_text(self) -> str:
+    def get_request_text(self, *, lazy: bool) -> str:
         query = """
         query getMetrics($environmentId: BigInt!) {
             metrics(environmentId: $environmentId) {
@@ -79,7 +79,7 @@ class ListMetricsOperation(ProtocolOperation[EmptyVariables, List[Metric]]):
             }
         }
         """
-        return render_query(query, Metric.gql_fragments())
+        return render_query(query, Metric.gql_fragments(lazy=lazy))
 
     @override
     def get_request_variables(self, environment_id: int, variables: EmptyVariables) -> Dict[str, Any]:
@@ -100,7 +100,7 @@ class ListDimensionsOperation(ProtocolOperation[ListEntitiesOperationVariables, 
     """List all dimensions for a given set of metrics."""
 
     @override
-    def get_request_text(self) -> str:
+    def get_request_text(self, *, lazy: bool) -> str:
         query = """
         query getDimensions($environmentId: BigInt!, $metrics: [MetricInput!]!) {
             dimensions(environmentId: $environmentId, metrics: $metrics) {
@@ -108,7 +108,7 @@ class ListDimensionsOperation(ProtocolOperation[ListEntitiesOperationVariables, 
             }
         }
         """
-        return render_query(query, Dimension.gql_fragments())
+        return render_query(query, Dimension.gql_fragments(lazy=lazy))
 
     @override
     def get_request_variables(self, environment_id: int, variables: ListEntitiesOperationVariables) -> Dict[str, Any]:
@@ -126,7 +126,7 @@ class ListMeasuresOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
     """List all measures for a given set of metrics."""
 
     @override
-    def get_request_text(self) -> str:
+    def get_request_text(self, *, lazy: bool) -> str:
         query = """
         query getMeasures($environmentId: BigInt!, $metrics: [MetricInput!]!) {
             measures(environmentId: $environmentId, metrics: $metrics) {
@@ -134,7 +134,7 @@ class ListMeasuresOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
             }
         }
         """
-        return render_query(query, Measure.gql_fragments())
+        return render_query(query, Measure.gql_fragments(lazy=lazy))
 
     @override
     def get_request_variables(self, environment_id: int, variables: ListEntitiesOperationVariables) -> Dict[str, Any]:
@@ -152,7 +152,7 @@ class ListEntitiesOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
     """List all entities for a given set of metrics."""
 
     @override
-    def get_request_text(self) -> str:
+    def get_request_text(self, *, lazy: bool) -> str:
         query = """
         query getEntities($environmentId: BigInt!, $metrics: [MetricInput!]!) {
             entities(environmentId: $environmentId, metrics: $metrics) {
@@ -160,7 +160,7 @@ class ListEntitiesOperation(ProtocolOperation[ListEntitiesOperationVariables, Li
             }
         }
         """
-        return render_query(query, Entity.gql_fragments())
+        return render_query(query, Entity.gql_fragments(lazy=lazy))
 
     @override
     def get_request_variables(self, environment_id: int, variables: ListEntitiesOperationVariables) -> Dict[str, Any]:
@@ -178,7 +178,7 @@ class ListSavedQueriesOperation(ProtocolOperation[EmptyVariables, List[SavedQuer
     """List all saved queries."""
 
     @override
-    def get_request_text(self) -> str:
+    def get_request_text(self, *, lazy: bool) -> str:
         query = """
         query getSavedQueries($environmentId: BigInt!) {
             savedQueries(environmentId: $environmentId) {
@@ -186,7 +186,7 @@ class ListSavedQueriesOperation(ProtocolOperation[EmptyVariables, List[SavedQuer
             }
         }
         """
-        return render_query(query, SavedQuery.gql_fragments())
+        return render_query(query, SavedQuery.gql_fragments(lazy=lazy))
 
     @override
     def get_request_variables(self, environment_id: int, variables: EmptyVariables) -> Dict[str, Any]:
@@ -242,7 +242,7 @@ class CreateQueryOperation(ProtocolOperation[QueryParameters, QueryId]):
     """Create a query that will be processed asynchronously."""
 
     @override
-    def get_request_text(self) -> str:
+    def get_request_text(self, *, lazy: bool) -> str:
         query = """
         mutation createQuery(
             $environmentId: BigInt!,
@@ -290,7 +290,7 @@ class GetQueryResultOperation(ProtocolOperation[GetQueryResultVariables, QueryRe
     """Get the results of a query that was already created."""
 
     @override
-    def get_request_text(self) -> str:
+    def get_request_text(self, *, lazy: bool) -> str:
         query = """
         query getQueryResults(
             $environmentId: BigInt!,
@@ -302,7 +302,7 @@ class GetQueryResultOperation(ProtocolOperation[GetQueryResultVariables, QueryRe
             }
         }
         """
-        return render_query(query, QueryResult.gql_fragments())
+        return render_query(query, QueryResult.gql_fragments(lazy=lazy))
 
     @override
     def get_request_variables(self, environment_id: int, variables: GetQueryResultVariables) -> Dict[str, Any]:
@@ -321,7 +321,7 @@ class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
     """Get the compiled SQL that would be sent to the warehouse by a query."""
 
     @override
-    def get_request_text(self) -> str:
+    def get_request_text(self, *, lazy: bool) -> str:
         query = """
         mutation compileSql(
             $environmentId: BigInt!,

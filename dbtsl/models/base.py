@@ -130,10 +130,23 @@ class GraphQLFragment:
 
     name: str
     body: str = dc_field(hash=False)
+    lazy: bool
 
 
 class GraphQLFragmentMixin:
     """Add this to any model that needs to be fetched from GraphQL."""
+
+    # mark fields that should not be lazy with this
+    NOT_LAZY = "dbtsl_notlazy"
+
+    _subclass_registry: ClassVar[Set[Type["GraphQLFragmentMixin"]]] = set()
+
+    def __init_subclass__(cls) -> None:
+        """Add subclasses to the subclass registry.
+
+        This registry is used by some tests.
+        """
+        GraphQLFragmentMixin._subclass_registry.add(cls)
 
     @classmethod
     def gql_model_name(cls) -> str:
@@ -146,25 +159,52 @@ class GraphQLFragmentMixin:
     # If we do that, we need to modify this method to memoize what fragments were already created
     # so that we exit the recursion gracefully
     @staticmethod
-    def _get_fragments_for_field(type: Union[Type[Any], str], field_name: str) -> Union[str, List[GraphQLFragment]]:
+    def _get_fragments_for_field(
+        type: Union[Type[Any], str],
+        field_name: str,
+        *,
+        field_lazy: bool,
+        global_lazy: bool,
+    ) -> Union[str, List[GraphQLFragment], None]:
+        # field is a GraphQLFragmentMixin
         if inspect.isclass(type) and issubclass(type, GraphQLFragmentMixin):
-            return type.gql_fragments()
+            return type.gql_fragments(lazy=global_lazy)
 
+        # field is an Optional, Union or List
         type_origin = get_type_origin(type)
-        # Optional = Union[X, None]
         if type_origin is list or type_origin is Union:
             inner_type = get_type_args(type)[0]
-            return GraphQLFragmentMixin._get_fragments_for_field(inner_type, field_name)
+
+            if (
+                global_lazy
+                and field_lazy
+                and inspect.isclass(inner_type)
+                and issubclass(inner_type, GraphQLFragmentMixin)
+            ):
+                return None
+
+            return GraphQLFragmentMixin._get_fragments_for_field(
+                inner_type,
+                field_name,
+                field_lazy=field_lazy,
+                global_lazy=global_lazy,
+            )
 
         return snake_case_to_camel_case(field_name)
 
     @classmethod
     @cache
-    def gql_fragments(cls) -> List[GraphQLFragment]:
+    def gql_fragments(cls, *, lazy: bool) -> List[GraphQLFragment]:
         """Get the GraphQL fragments needed to query for this model.
 
         The first (0th) fragment is always the fragment that represents the model itself.
         The remaining fragments are dependencies of the model, if any.
+
+        Dependencies only be returned if `lazy=False`. If `lazy=True`, the returned GraphQL
+        query won't include child models.
+
+        Arguments:
+            lazy: whether to fetch nested models.
         """
         gql_model_name = cls.gql_model_name()
         fragment_name = f"fragment{cls.__name__}"
@@ -174,14 +214,22 @@ class GraphQLFragmentMixin:
         query_elements: List[str] = []
         dependencies: Set[GraphQLFragment] = set()
         for field in fields(cls):
-            frag_or_field = GraphQLFragmentMixin._get_fragments_for_field(field.type, field.name)
+            field_lazy = lazy and GraphQLFragmentMixin.NOT_LAZY not in field.metadata
+            frag_or_field = GraphQLFragmentMixin._get_fragments_for_field(
+                field.type,
+                field.name,
+                field_lazy=field_lazy,
+                global_lazy=lazy,
+            )
             if isinstance(frag_or_field, str):
                 query_elements.append(frag_or_field)
-            else:
+            elif frag_or_field is not None:
                 frag = frag_or_field[0]
                 field_query = snake_case_to_camel_case(field.name) + " { ..." + frag.name + " }"
                 query_elements.append(field_query)
                 dependencies.update(frag_or_field)
+            else:
+                assert lazy
 
         query_str = "         \n".join(query_elements)
 
@@ -190,5 +238,12 @@ class GraphQLFragmentMixin:
             {query_str}
         }}
         """)
-        fragment = GraphQLFragment(name=fragment_name, body=fragment_body)
+        fragment = GraphQLFragment(
+            name=fragment_name,
+            body=fragment_body,
+            lazy=lazy,
+        )
         return [fragment] + list(dependencies)
+
+
+NOT_LAZY_META = {GraphQLFragmentMixin.NOT_LAZY: True}
