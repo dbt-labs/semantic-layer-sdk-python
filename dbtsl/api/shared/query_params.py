@@ -1,5 +1,20 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import List, Optional, TypedDict, Union
+
+
+class GroupByType(Enum):
+    DIMENSION = "dimension"
+    ENTITY = "entity"
+
+
+@dataclass(frozen=True)
+class GroupByParam:
+    """Parameter for a group_by, i.e a dimension or an entity."""
+
+    name: str
+    type: GroupByType
+    grain: Optional[str]
 
 
 @dataclass(frozen=True)
@@ -33,7 +48,7 @@ class QueryParameters(TypedDict, total=False):
 
     saved_query: str
     metrics: List[str]
-    group_by: List[str]
+    group_by: List[Union[GroupByParam, str]]
     limit: int
     order_by: List[Union[OrderBySpec, str]]
     where: List[str]
@@ -45,7 +60,7 @@ class AdhocQueryParametersStrict:
     """The parameters of an adhoc query, strictly validated."""
 
     metrics: Optional[List[str]]
-    group_by: Optional[List[str]]
+    group_by: Optional[List[Union[GroupByParam, str]]]
     limit: Optional[int]
     order_by: Optional[List[OrderBySpec]]
     where: Optional[List[str]]
@@ -64,7 +79,9 @@ class SavedQueryQueryParametersStrict:
 
 
 def validate_order_by(
-    known_metrics: List[str], known_group_bys: List[str], clause: Union[OrderBySpec, str]
+    known_metrics: List[str],
+    known_group_bys: List[Union[str, GroupByParam]],
+    clause: Union[OrderBySpec, str],
 ) -> OrderBySpec:
     """Validate an order by clause like `-metric_name`."""
     if isinstance(clause, OrderByMetric) or isinstance(clause, OrderByGroupBy):
@@ -77,7 +94,11 @@ def validate_order_by(
     if clause in known_metrics:
         return OrderByMetric(name=clause, descending=descending)
 
-    if clause in known_group_bys or clause == "metric_time":
+    normalized_known_group_bys = [
+        known_group_by.name if isinstance(known_group_by, GroupByParam) else known_group_by
+        for known_group_by in known_group_bys
+    ]
+    if clause in normalized_known_group_bys or clause == "metric_time":
         return OrderByGroupBy(name=clause, descending=descending, grain=None)
 
     # TODO: make this error less strict when server supports order_by type inference.
