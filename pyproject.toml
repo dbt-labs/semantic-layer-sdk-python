@@ -130,18 +130,22 @@ asyncio_mode = "auto"
 [tool.pyright]
 typeCheckingMode = "strict"
 venv = ".venv/"
-
-[[tool.pyright.executionEnvironments]]
-root = "tests"
-# Tests use private methods and assign inappropriate values to some
-# properties to check our error handling capabilities etc. To avoid
-# having to ignore everything, we disable some checks
-reportPrivateUsage = false
-reportAssignmentType = false
-reportAny = false
-reportCallIssue = false
-reportArgumentType = false
-reportUnknownMemberType = false
+# executionEnvironments = [
+#   # { 
+#   #   root = "tests", 
+#   #   extraPaths = ["dbtsl"],
+#   #   # Tests use private methods and assign inappropriate values to some
+#   #   # properties to check our error handling capabilities etc. To avoid
+#   #   # having to ignore everything, we disable some checks
+#   #   reportPrivateUsage = false,
+#   #   reportAssignmentType = false,
+#   #   reportAny = false,
+#   #   reportCallIssue = false,
+#   #   reportArgumentType = false,
+#   #   reportUnknownMemberType = false
+#   # },
+#   { root = "dbtsl" }
+# ]
 
 [tool.mypy]
 strict = true

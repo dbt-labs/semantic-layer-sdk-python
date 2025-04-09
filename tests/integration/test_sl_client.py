@@ -102,8 +102,10 @@ async def test_client_metadata_lazy(subtests: SubTests, client_lazy: BothClients
         model_dims = await maybe_await(metric.load_dimensions())
         assert len(model_dims) > 0
         assert model_dims == metric.dimensions
+        model_dims.sort(key=lambda m: m.name)
 
         client_dims = await maybe_await(client_lazy.dimensions(metrics=[metric.name]))
+        client_dims.sort(key=lambda m: m.name)
         assert client_dims == model_dims
 
     with subtests.test("measures"):
@@ -112,8 +114,10 @@ async def test_client_metadata_lazy(subtests: SubTests, client_lazy: BothClients
         model_measures = await maybe_await(metric.load_measures())
         assert len(model_measures) > 0
         assert model_measures == metric.measures
+        model_measures.sort(key=lambda m: m.name)
 
         client_measures = await maybe_await(client_lazy.measures(metrics=[metric.name]))
+        client_measures.sort(key=lambda m: m.name)
         assert client_measures == model_measures
 
     with subtests.test("entities"):
@@ -122,8 +126,10 @@ async def test_client_metadata_lazy(subtests: SubTests, client_lazy: BothClients
         model_entities = await maybe_await(metric.load_entities())
         assert len(model_entities) > 0
         assert model_entities == metric.entities
+        model_entities.sort(key=lambda m: m.name)
 
         client_entities = await maybe_await(client_lazy.entities(metrics=[metric.name]))
+        client_entities.sort(key=lambda m: m.name)
         assert client_entities == model_entities
 
     with subtests.test("dimension_values"):

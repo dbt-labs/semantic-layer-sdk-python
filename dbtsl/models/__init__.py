@@ -4,7 +4,7 @@ NOTE: this will be deleted in the future and will be replaced by
 generated code from our GraphQL schema.
 """
 
-from .base import BaseModel
+from .base import BaseModel, GraphQLFragmentMixin
 from .dimension import Dimension, DimensionType
 from .entity import Entity, EntityType
 from .measure import AggregationType, Measure
@@ -26,6 +26,7 @@ from .time import DatePart, TimeGranularity
 _ = QueryResult
 
 BaseModel._register_subclasses()  # pyright: ignore[reportPrivateUsage]
+GraphQLFragmentMixin._register_subclasses()  # pyright: ignore[reportPrivateUsage]
 
 __all__ = [
     "AggregationType",
