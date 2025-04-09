@@ -1,3 +1,0 @@
-kind: Chore
-body: Make `pyright` run on `strict` mode and add `mypy`.
-time: 2025-04-03T16:30:34.024926+02:00
