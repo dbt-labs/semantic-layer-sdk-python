@@ -6,7 +6,7 @@ from typing import List, Optional, Self, Union
 import pyarrow as pa
 from typing_extensions import AsyncIterator, Unpack, overload
 
-from dbtsl.api.shared.query_params import OrderByGroupBy, OrderByMetric, QueryParameters
+from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByMetric, QueryParameters
 from dbtsl.models import (
     Dimension,
     Entity,
@@ -84,7 +84,7 @@ class AsyncGraphQLClient:
     async def query(
         self,
         metrics: List[str],
-        group_by: Optional[List[str]] = None,
+        group_by: Optional[List[Union[GroupByParam, str]]] = None,
         limit: Optional[int] = None,
         order_by: Optional[List[Union[str, OrderByGroupBy, OrderByMetric]]] = None,
         where: Optional[List[str]] = None,
@@ -93,7 +93,7 @@ class AsyncGraphQLClient:
     @overload
     async def query(
         self,
-        group_by: List[str],
+        group_by: List[Union[GroupByParam, str]],
         limit: Optional[int] = None,
         order_by: Optional[List[Union[str, OrderByGroupBy]]] = None,
         where: Optional[List[str]] = None,

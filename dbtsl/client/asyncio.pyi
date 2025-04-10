@@ -6,7 +6,7 @@ from typing import AsyncIterator, List, Optional, Union
 import pyarrow as pa
 from typing_extensions import Self, Unpack, overload
 
-from dbtsl.api.shared.query_params import OrderByGroupBy, OrderByMetric, QueryParameters
+from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByMetric, QueryParameters
 from dbtsl.models import Dimension, Entity, Measure, Metric, SavedQuery
 from dbtsl.timeout import TimeoutOptions
 
@@ -54,7 +54,7 @@ class AsyncSemanticLayerClient:
     async def query(
         self,
         metrics: List[str],
-        group_by: Optional[List[str]] = None,
+        group_by: Optional[List[Union[GroupByParam, str]]] = None,
         limit: Optional[int] = None,
         order_by: Optional[List[Union[str, OrderByGroupBy, OrderByMetric]]] = None,
         where: Optional[List[str]] = None,
