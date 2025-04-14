@@ -1,4 +1,4 @@
-"""Lazily fetch all available metrics from the metadata API display only the dimensions of certain metrics."""
+"""Fetch all available metrics from the metadata API and display only the dimensions of certain metrics."""
 
 from argparse import ArgumentParser
 
@@ -40,7 +40,7 @@ def main() -> None:
                 print("     dimensions=skipped")
                 continue
 
-            # load dimensions only if even
+            # load dimensions only if index is even
             m.load_dimensions()
 
             print("     dimensions=[")

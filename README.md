@@ -92,6 +92,12 @@ arrow_table = client.query(...)
 polars_df = pl.from_arrow(arrow_table)
 ```
 
+### Lazy loading
+
+By default, the SDK will eagerly request for lists of nested objects. For example, in the list of `Metric` returned by `client.metrics()`, each metric will contain the list of its dimensions, entities and measures. This is convenient in most cases, but can make your returned data really large in case your project is really large, which can slow things down. 
+
+It is possible to set the client to `lazy=True`, which will make it skip populating nested object lists unless you explicitly load ask for it on a per-model basis. Check your [lazy loading example](./examples/list_metrics_lazy_sync.py) to learn more.
+
 ### More examples
 
 Check out our [usage examples](./examples/) to learn more.
