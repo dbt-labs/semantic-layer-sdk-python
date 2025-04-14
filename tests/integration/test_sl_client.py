@@ -140,14 +140,7 @@ async def test_client_metadata_lazy(subtests: SubTests, client_lazy: BothClients
         client_entities = await maybe_await(client_lazy.entities(metrics=[metric.name]))
         assert model_list_equal(client_entities, model_entities)
 
-    with subtests.test("dimension_values"):
-        dimension = metric.dimensions[0]
-        dim_values = await maybe_await(client_lazy.dimension_values(metrics=[metric.name], group_by=dimension.name))
-        assert len(dim_values) > 0
-
-    with subtests.test("saved_queries"):
-        sqs = await maybe_await(client_lazy.saved_queries())
-        assert len(sqs) > 0
+    # NOTE: dimension_values and saved_queries are not lazy, so not testing it here
 
 
 @pytest.mark.parametrize("api", [ADBC, GRAPHQL])
