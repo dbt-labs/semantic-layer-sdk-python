@@ -47,10 +47,8 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         )
 
     @classmethod
-    def _extra_headers(cls) -> Dict[str, str]:
-        return {
-            "user-agent": env.PLATFORM.user_agent,
-        }
+    def _extra_headers(cls, client_partner_source: Optional[str] = None) -> Dict[str, str]:
+        return {"user-agent": env.PLATFORM.user_agent, "x-dbt-partner-source": client_partner_source or "sl-python-sdk"}
 
     def __init__(  # noqa: D107
         self,
@@ -59,6 +57,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ):
         self.environment_id = environment_id
 
@@ -78,7 +77,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
 
         headers = {
             "authorization": f"bearer {auth_token}",
-            **self._extra_headers(),
+            **self._extra_headers(client_partner_source),
         }
         transport = self._create_transport(url=server_url, headers=headers)
         self._gql = Client(transport=transport, execute_timeout=self.timeout.execute_timeout)
@@ -145,6 +144,7 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ) -> TClient:
         """Initialize the Semantic Layer client.
 
@@ -154,5 +154,6 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
             auth_token: the API auth token
             url_format: the URL format string to construct the final URL with
             timeout: `TimeoutOptions` or total timeout
+            client_partner_source: Pass a dbt partner source header for traffic source tracking
         """
         pass

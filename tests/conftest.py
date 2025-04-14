@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Union, cast
 
 import pytest
+from dotenv import load_dotenv
 from gql import Client, gql
 from gql.utilities.serialize_variable_values import serialize_variable_values
 
@@ -69,6 +70,7 @@ class Credentials:
         - SL_TOKEN
         - SL_ENV_ID
         """
+        load_dotenv()
         return cls(
             host=os.environ["SL_HOST"],
             token=os.environ["SL_TOKEN"],

@@ -17,6 +17,7 @@ class AsyncSemanticLayerClient:
         auth_token: str,
         host: str,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ) -> None: ...
     @overload
     async def compile_sql(

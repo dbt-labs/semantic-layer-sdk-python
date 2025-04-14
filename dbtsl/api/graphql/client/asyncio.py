@@ -49,6 +49,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        client_partner_source: Optional[str] = None,
     ):
         """Initialize the metadata client.
 
@@ -60,12 +61,13 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
                 into a full URL. If `None`, the default `https://{server_host}/api/graphql`
                 will be assumed.
             timeout: TimeoutOptions or total timeout (in seconds) for all GraphQL requests.
+            client_partner_source: Pass a dbt partner source header for traffic source tracking
 
         NOTE: If `timeout` is a `TimeoutOptions`, the `connect_timeout` will not be used, due to
         limitations of `gql`'s `aiohttp` transport.
         See: https://github.com/graphql-python/gql/blob/b066e8944b0da0a4bbac6c31f43e5c3c7772cd51/gql/transport/aiohttp.py#L110
         """
-        super().__init__(server_host, environment_id, auth_token, url_format, timeout)
+        super().__init__(server_host, environment_id, auth_token, url_format, timeout, client_partner_source)
 
     @override
     def _create_transport(self, url: str, headers: Dict[str, str]) -> AIOHTTPTransport:
