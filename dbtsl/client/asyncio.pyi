@@ -7,7 +7,7 @@ import pyarrow as pa
 from typing_extensions import Self, Unpack, overload
 
 from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByMetric, QueryParameters
-from dbtsl.models import Dimension, Entity, Measure, Metric, SavedQuery
+from dbtsl.models import AsyncMetric, Dimension, Entity, Measure, SavedQuery
 from dbtsl.timeout import TimeoutOptions
 
 class AsyncSemanticLayerClient:
@@ -92,7 +92,7 @@ class AsyncSemanticLayerClient:
         """Query the Semantic Layer."""
         ...
 
-    async def metrics(self) -> List[Metric]:
+    async def metrics(self) -> List[AsyncMetric]:
         """List all the metrics available in the Semantic Layer."""
         ...
 

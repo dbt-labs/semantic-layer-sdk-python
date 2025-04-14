@@ -11,8 +11,8 @@ from dbtsl.models import (
     Dimension,
     Entity,
     Measure,
-    Metric,
     SavedQuery,
+    SyncMetric,
 )
 from dbtsl.timeout import TimeoutOptions
 
@@ -30,7 +30,7 @@ class SyncGraphQLClient:
     def session(self) -> AbstractContextManager[Iterator[Self]]: ...
     @property
     def has_session(self) -> bool: ...
-    def metrics(self) -> List[Metric]:
+    def metrics(self) -> List[SyncMetric]:
         """Get a list of all available metrics."""
         ...
 

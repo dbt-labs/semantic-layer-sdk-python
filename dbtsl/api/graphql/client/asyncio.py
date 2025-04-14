@@ -117,8 +117,9 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         except Exception as err:
             raise self._refine_err(err)
 
-        res["_client"] = self
-        return op.parse_response(res)
+        resp = op.parse_response(res)
+        self._attach_self_to_parsed_response(resp)
+        return resp
 
     async def _poll_until_complete(
         self,

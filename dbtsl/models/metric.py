@@ -1,6 +1,7 @@
+from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional
+from typing import Awaitable, List, Optional, Union
 
 from dbtsl.models.base import NOT_LAZY_META as NOT_LAZY
 from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
@@ -46,3 +47,50 @@ class Metric(BaseModel, GraphQLFragmentMixin):
     dimensions: List[Dimension] = field(default_factory=list)
     measures: List[Measure] = field(default_factory=list)
     entities: List[Entity] = field(default_factory=list)
+
+    def _load_dimensions(self) -> Union[List[Dimension], Awaitable[List[Dimension]]]:
+        return self._client.dimensions(metrics=[self.name])
+
+    def _load_measures(self) -> Union[List[Measure], Awaitable[List[Measure]]]:
+        return self._client.measures(metrics=[self.name])
+
+    def _load_entities(self) -> Union[List[Entity], Awaitable[List[Entity]]]:
+        return self._client.entities(metrics=[self.name])
+
+
+class SyncMetric(Metric, ABC):
+    """A metric with type annotations for sync lazy loading methods.
+
+    At runtime this is just a regular Metric. Don't use this directly.
+    """
+
+    def load_dimensions(self) -> List[Dimension]:
+        """Lazy load dimensions for this metric."""
+        raise NotImplementedError()
+
+    def load_measures(self) -> List[Measure]:
+        """Lazy load measures for this metric."""
+        raise NotImplementedError()
+
+    def load_entities(self) -> List[Entity]:
+        """Lazy load entities for this metric."""
+        raise NotImplementedError()
+
+
+class AsyncMetric(Metric, ABC):
+    """A metric with type annotations for async lazy loading methods.
+
+    At runtime this is just a regular Metric. Don't use this directly.
+    """
+
+    async def load_dimensions(self) -> List[Dimension]:
+        """Lazy load dimensions for this metric."""
+        raise NotImplementedError()
+
+    async def load_measures(self) -> List[Measure]:
+        """Lazy load measures for this metric."""
+        raise NotImplementedError()
+
+    async def load_entities(self) -> List[Entity]:
+        """Lazy load entities for this metric."""
+        raise NotImplementedError()

@@ -1,4 +1,4 @@
-from typing import AsyncIterator, Iterator
+from typing import AsyncIterator, Iterator, List, Protocol
 
 import pytest
 from pytest_subtests import SubTests
@@ -54,6 +54,20 @@ def client_lazy(client: BothClients) -> Iterator[BothClients]:
     client.lazy = False
 
 
+class Nameable(Protocol):
+    """Something with a name."""
+
+    @property
+    def name(self) -> str: ...
+
+
+def model_list_equal(a: List[Nameable], b: List[Nameable]) -> bool:
+    """Assert two lists of models are equal regardless of order."""
+    a_sorted = list(sorted(a, key=lambda e: e.name))
+    b_sorted = list(sorted(b, key=lambda e: e.name))
+    return a_sorted == b_sorted
+
+
 pytestmark = pytest.mark.asyncio(scope="module")
 
 
@@ -67,12 +81,12 @@ async def test_client_metadata_eager(subtests: SubTests, client: BothClients) ->
     with subtests.test("dimensions"):
         dims = await maybe_await(client.dimensions(metrics=[metric.name]))
         assert len(dims) > 0
-        assert dims == metric.dimensions
+        assert model_list_equal(dims, metric.dimensions)
 
     with subtests.test("measures"):
         measures = await maybe_await(client.measures(metrics=[metric.name]))
         assert len(measures) > 0
-        assert measures == metric.measures
+        assert model_list_equal(measures, metric.measures)
 
     with subtests.test("entities"):
         entities = await maybe_await(client.entities(metrics=[metric.name]))
@@ -101,30 +115,30 @@ async def test_client_metadata_lazy(subtests: SubTests, client_lazy: BothClients
 
         model_dims = await maybe_await(metric.load_dimensions())
         assert len(model_dims) > 0
-        assert model_dims == metric.dimensions
+        assert model_list_equal(model_dims, metric.dimensions)
 
         client_dims = await maybe_await(client_lazy.dimensions(metrics=[metric.name]))
-        assert client_dims == model_dims
+        assert model_list_equal(client_dims, model_dims)
 
     with subtests.test("measures"):
         assert len(metric.measures) == 0
 
         model_measures = await maybe_await(metric.load_measures())
         assert len(model_measures) > 0
-        assert model_measures == metric.measures
+        assert model_list_equal(model_measures, metric.measures)
 
         client_measures = await maybe_await(client_lazy.measures(metrics=[metric.name]))
-        assert client_measures == model_measures
+        assert model_list_equal(client_measures, model_measures)
 
     with subtests.test("entities"):
         assert len(metric.entities) == 0
 
         model_entities = await maybe_await(metric.load_entities())
         assert len(model_entities) > 0
-        assert model_entities == metric.entities
+        assert model_list_equal(model_entities, metric.entities)
 
         client_entities = await maybe_await(client_lazy.entities(metrics=[metric.name]))
-        assert client_entities == model_entities
+        assert model_list_equal(client_entities, model_entities)
 
     with subtests.test("dimension_values"):
         dimension = metric.dimensions[0]

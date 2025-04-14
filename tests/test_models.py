@@ -1,11 +1,8 @@
 import dataclasses as dc
 import inspect
-import typing
 import warnings
 from enum import Enum
 from typing import List, Optional, Union
-from typing import get_args as get_type_args
-from typing import get_origin as get_type_origin
 
 import pytest
 from mashumaro.codecs.basic import decode
@@ -111,37 +108,35 @@ class B(BaseModel, GraphQLFragmentMixin):
     lazy_a: Optional[A] = None
     many_a: List[A] = dc.field(default_factory=list)
 
-    def load_lazy_a(self) -> A:
+    def _load_lazy_a(self) -> A:
         return A(foo_bar="a")
 
-    def load_many_a(self) -> List[A]:
+    def _load_many_a(self) -> List[A]:
         return [A(foo_bar="a1"), A(foo_bar="a2")]
+
+
+GraphQLFragmentMixin._register_subclasses()
+
+
+def test_graphql_fragment_mixin_register_subclasses() -> None:
+    GraphQLFragmentMixin._register_subclasses()
+    assert A._lazy_loadable_fields == set()
+    assert B._lazy_loadable_fields == {"lazy_a", "many_a"}
 
 
 def test_graphql_fragment_mixin_lazy_loadable_fields_properties() -> None:
     errors: List[str] = []
-    for model in GraphQLFragmentMixin._subclass_registry:
+    for model in GraphQLFragmentMixin.__subclasses__():
         for field in dc.fields(model):
-            origin = get_type_origin(field.type)
-            if origin is None or (origin is not list and origin is not typing.Union):
+            if field.name not in model._lazy_loadable_fields:
                 continue
-            # we know type is List[...], Union[...] or Optional[...]
-
-            inner_type = get_type_args(field.type)[0]
-            if not inspect.isclass(inner_type) or not issubclass(inner_type, GraphQLFragmentMixin):
-                continue
-            # we know type is List[GraphQLFragmentMixin], Union[GraphQLFragmentMixin] or Optional[GraphQLFragmentMixin]
-
-            if GraphQLFragmentMixin.NOT_LAZY in field.metadata:
-                continue
-            # we know the field is not marked as NOT_LAZY
 
             field_name = f"{model.__name__}.{field.name}"
 
             if field.default == dc.MISSING and field.default_factory == dc.MISSING:
                 errors.append(f"{field_name} is lazy-loadable but has no default")
 
-            if not hasattr(model, f"load_{field.name}"):
+            if not hasattr(model, f"_load_{field.name}"):
                 errors.append(f"{field_name} is lazy-loadable but has no loader method")
 
     error_msg = "\n".join(errors)

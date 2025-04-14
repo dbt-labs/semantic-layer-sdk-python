@@ -8,10 +8,10 @@ from typing_extensions import AsyncIterator, Unpack, overload
 
 from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByMetric, QueryParameters
 from dbtsl.models import (
+    AsyncMetric,
     Dimension,
     Entity,
     Measure,
-    Metric,
     SavedQuery,
 )
 from dbtsl.timeout import TimeoutOptions
@@ -30,7 +30,7 @@ class AsyncGraphQLClient:
     def session(self) -> AbstractAsyncContextManager[AsyncIterator[Self]]: ...
     @property
     def has_session(self) -> bool: ...
-    async def metrics(self) -> List[Metric]:
+    async def metrics(self) -> List[AsyncMetric]:
         """Get a list of all available metrics."""
         ...
 

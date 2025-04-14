@@ -13,6 +13,7 @@ from dbtsl.api.graphql.protocol import (
 )
 from dbtsl.backoff import ExponentialBackoff
 from dbtsl.error import AuthError
+from dbtsl.models.base import GraphQLFragmentMixin
 from dbtsl.timeout import TimeoutOptions
 
 TTransport = TypeVar("TTransport", Transport, AsyncTransport)
@@ -103,6 +104,18 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
             return AuthError(err.args)
 
         return err
+
+    def _attach_self_to_parsed_response(self, resp: object) -> None:
+        # NOTE: we're setting the _client_unchecked here instead of making a public property
+        # because we don't want end-users to be aware of this. You can consider _client_unchecked
+        # as public to the module but not to end users
+        if isinstance(resp, GraphQLFragmentMixin):
+            resp._client_unchecked = self  # type: ignore
+            return
+
+        if isinstance(resp, list):
+            for v in resp:  # pyright: ignore[reportUnknownVariableType]
+                v._client_unchecked = self
 
     @property
     def _gql_session(self) -> TSession:

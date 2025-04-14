@@ -4,11 +4,11 @@ NOTE: this will be deleted in the future and will be replaced by
 generated code from our GraphQL schema.
 """
 
-from .base import BaseModel
+from .base import BaseModel, GraphQLFragmentMixin
 from .dimension import Dimension, DimensionType
 from .entity import Entity, EntityType
 from .measure import AggregationType, Measure
-from .metric import Metric, MetricType
+from .metric import AsyncMetric, Metric, MetricType, SyncMetric
 from .query import QueryResult
 from .saved_query import (
     Export,
@@ -26,9 +26,11 @@ from .time import DatePart, TimeGranularity
 _ = QueryResult
 
 BaseModel._register_subclasses()  # pyright: ignore[reportPrivateUsage]
+GraphQLFragmentMixin._register_subclasses()  # pyright: ignore[reportPrivateUsage]
 
 __all__ = [
     "AggregationType",
+    "AsyncMetric",
     "DatePart",
     "Dimension",
     "DimensionType",
@@ -46,5 +48,6 @@ __all__ = [
     "SavedQueryMetricParam",
     "SavedQueryQueryParams",
     "SavedQueryWhereParam",
+    "SyncMetric",
     "TimeGranularity",
 ]
