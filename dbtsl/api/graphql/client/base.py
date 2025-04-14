@@ -115,7 +115,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
 
         if isinstance(resp, list):
             for v in resp:  # pyright: ignore[reportUnknownVariableType]
-                v._client_unchecked = self
+                self._attach_self_to_parsed_response(v)  # pyright: ignore[reportUnknownArgumentType]
 
     @property
     def _gql_session(self) -> TSession:
