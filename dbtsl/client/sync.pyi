@@ -7,7 +7,7 @@ import pyarrow as pa
 from typing_extensions import Self, Unpack, overload
 
 from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByMetric, QueryParameters
-from dbtsl.models import Dimension, Entity, Measure, Metric, SavedQuery
+from dbtsl.models import Dimension, Entity, Measure, SavedQuery, SyncMetric
 from dbtsl.timeout import TimeoutOptions
 
 class SyncSemanticLayerClient:
@@ -17,7 +17,16 @@ class SyncSemanticLayerClient:
         auth_token: str,
         host: str,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        lazy: bool = False,
     ) -> None: ...
+    @property
+    def lazy(self) -> bool:
+        """Whether metadata queries will be lazy or not."""
+        ...
+    @lazy.setter
+    def lazy(self, v: bool) -> None:
+        """Set whether metadata queries will be lazy."""
+        ...
     @overload
     def compile_sql(
         self,
@@ -82,7 +91,7 @@ class SyncSemanticLayerClient:
         """Query the Semantic Layer."""
         ...
 
-    def metrics(self) -> List[Metric]:
+    def metrics(self) -> List[SyncMetric]:
         """List all the metrics available in the Semantic Layer."""
         ...
 

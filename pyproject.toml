@@ -129,19 +129,10 @@ asyncio_mode = "auto"
 
 [tool.pyright]
 typeCheckingMode = "strict"
-venv = ".venv/"
-
-[[tool.pyright.executionEnvironments]]
-root = "tests"
-# Tests use private methods and assign inappropriate values to some
-# properties to check our error handling capabilities etc. To avoid
-# having to ignore everything, we disable some checks
-reportPrivateUsage = false
-reportAssignmentType = false
-reportAny = false
-reportCallIssue = false
-reportArgumentType = false
-reportUnknownMemberType = false
+executionEnvironments = [
+  { root = "tests", extraPaths = ["."], reportPrivateUsage = false, reportAssignmentType = false, reportAny = false, reportCallIssue = false, reportArgumentType = false, reportUnknownMemberType = false },
+  { root = "." }
+]
 
 [tool.mypy]
 strict = true
@@ -184,8 +175,8 @@ known-first-party = ["dbtsl"]
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore docs for test files
-"*_test.py" = ["D103"]
-"tests/**" = ["D103"]
+"*_test.py" = ["D101", "D102", "D103"]
+"tests/**" = ["D101", "D102", "D103"]
 
 # Ignore prints in examples
 "examples/**" = ["T201", "D103"]

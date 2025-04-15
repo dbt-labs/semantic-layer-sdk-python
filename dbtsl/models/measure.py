@@ -20,7 +20,7 @@ class AggregationType(Enum, metaclass=FlexibleEnumMeta):
     COUNT = "COUNT"
 
 
-@dataclass(frozen=True)
+@dataclass
 class Measure(BaseModel, GraphQLFragmentMixin):
     """A measure."""
 

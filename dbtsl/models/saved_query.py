@@ -3,6 +3,7 @@ from dataclasses import field as dc_field
 from enum import Enum
 from typing import List, Optional
 
+from dbtsl.models.base import NOT_LAZY_META as NOT_LAZY
 from dbtsl.models.base import BaseModel, FlexibleEnumMeta, GraphQLFragmentMixin
 from dbtsl.models.time import DatePart, TimeGranularity
 
@@ -15,7 +16,7 @@ class ExportDestinationType(Enum, metaclass=FlexibleEnumMeta):
     VIEW = "VIEW"
 
 
-@dataclass(frozen=True)
+@dataclass
 class ExportConfig(BaseModel, GraphQLFragmentMixin):
     """A saved query export config."""
 
@@ -24,7 +25,7 @@ class ExportConfig(BaseModel, GraphQLFragmentMixin):
     export_as: ExportDestinationType
 
 
-@dataclass(frozen=True)
+@dataclass
 class Export(BaseModel, GraphQLFragmentMixin):
     """A saved query export."""
 
@@ -32,7 +33,7 @@ class Export(BaseModel, GraphQLFragmentMixin):
     config: ExportConfig
 
 
-@dataclass(frozen=True)
+@dataclass
 class SavedQueryMetricParam(BaseModel, GraphQLFragmentMixin):
     """The metric param of a saved query."""
 
@@ -45,7 +46,7 @@ GRAIN_DEPRECATION = (
 )
 
 
-@dataclass(frozen=True)
+@dataclass
 class SavedQueryGroupByParam(BaseModel, GraphQLFragmentMixin):
     """The groupBy param of a saved query."""
 
@@ -55,7 +56,7 @@ class SavedQueryGroupByParam(BaseModel, GraphQLFragmentMixin):
     date_part: Optional[DatePart]
 
 
-@dataclass(frozen=True)
+@dataclass
 class SavedQueryWhereParam(BaseModel, GraphQLFragmentMixin):
     """The where param of a saved query."""
 
@@ -66,16 +67,16 @@ class SavedQueryWhereParam(BaseModel, GraphQLFragmentMixin):
     where_sql_template: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class SavedQueryQueryParams(BaseModel, GraphQLFragmentMixin):
     """The parameters of a saved query."""
 
-    metrics: List[SavedQueryMetricParam]
-    group_by: List[SavedQueryGroupByParam]
-    where: Optional[SavedQueryWhereParam]
+    metrics: List[SavedQueryMetricParam] = dc_field(metadata=NOT_LAZY)
+    group_by: List[SavedQueryGroupByParam] = dc_field(metadata=NOT_LAZY)
+    where: Optional[SavedQueryWhereParam] = dc_field(metadata=NOT_LAZY)
 
 
-@dataclass(frozen=True)
+@dataclass
 class SavedQuery(BaseModel, GraphQLFragmentMixin):
     """A saved query."""
 
@@ -83,4 +84,4 @@ class SavedQuery(BaseModel, GraphQLFragmentMixin):
     description: Optional[str]
     label: Optional[str]
     query_params: SavedQueryQueryParams
-    exports: List[Export]
+    exports: List[Export] = dc_field(metadata=NOT_LAZY)

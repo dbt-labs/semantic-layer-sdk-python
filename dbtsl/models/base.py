@@ -1,11 +1,14 @@
 import inspect
+import typing
 import warnings
+from asyncio.tasks import Task
+from collections.abc import Awaitable
 from dataclasses import dataclass, fields, is_dataclass
 from dataclasses import field as dc_field
 from enum import EnumMeta
 from functools import cache
 from types import MappingProxyType
-from typing import Any, ClassVar, Dict, List, Set, Tuple, Type, Union
+from typing import Any, ClassVar, Dict, List, Optional, Set, Tuple, Type, Union
 from typing import get_args as get_type_args
 from typing import get_origin as get_type_origin
 
@@ -13,6 +16,10 @@ from mashumaro import DataClassDictMixin, field_options
 from mashumaro.config import BaseConfig
 
 from dbtsl.api.graphql.util import normalize_query
+
+if typing.TYPE_CHECKING:
+    from dbtsl.api.graphql.client.asyncio import AsyncGraphQLClient
+    from dbtsl.api.graphql.client.sync import SyncGraphQLClient
 
 
 def snake_case_to_camel_case(s: str) -> str:
@@ -130,10 +137,85 @@ class GraphQLFragment:
 
     name: str
     body: str = dc_field(hash=False)
+    lazy: bool
 
 
 class GraphQLFragmentMixin:
     """Add this to any model that needs to be fetched from GraphQL."""
+
+    # mark fields that should not be lazy with this
+    NOT_LAZY: ClassVar[str] = "dbtsl_notlazy"
+
+    # set of all field names that are lazy loadable
+    _lazy_loadable_fields: ClassVar[Set[str]]
+
+    def __init__(self) -> None:
+        """Init the unchecked client as None."""
+        self._client_unchecked: Optional[Union["SyncGraphQLClient", "AsyncGraphQLClient"]] = None
+
+    @property
+    def _client(self) -> Union["SyncGraphQLClient", "AsyncGraphQLClient"]:
+        assert self._client_unchecked is not None
+        return self._client_unchecked
+
+    @staticmethod
+    def _make_field_loader(field: str) -> Union[Any, Task[Any]]:
+        """Returns an IO-agnostic wrapped method that loads a field and sets its property in the model.
+
+        This wrapper will call an underlying private `_load_{field}` which will actually hold the
+        implementation of the loader.
+
+        The reason this exists is to make underlying loaders independent of sync and async IO.
+        """
+
+        def _loader(self: GraphQLFragmentMixin) -> Union[Any, Awaitable[Any]]:
+            load_field_method = getattr(self, f"_load_{field}")
+
+            coro_or_result = load_field_method()
+
+            # async
+            if inspect.iscoroutine(coro_or_result):
+
+                async def set_field_async(coro: Awaitable[Any]) -> Any:
+                    result = await coro
+                    setattr(self, field, result)
+                    return result
+
+                return set_field_async(coro_or_result)
+
+            # sync
+            setattr(self, field, coro_or_result)
+            return coro_or_result
+
+        return _loader
+
+    @classmethod
+    def _register_subclasses(cls) -> None:
+        """Process fields of all subclasses.
+
+        This will populate the _lazy_loadable_fields set for each subclass
+        """
+        for subclass in cls.__subclasses__():
+            subclass._lazy_loadable_fields = set()
+            assert is_dataclass(subclass)
+            for field in fields(subclass):
+                if GraphQLFragmentMixin.NOT_LAZY in field.metadata:
+                    continue
+
+                type_origin = get_type_origin(field.type)
+                if type_origin is None:
+                    continue
+                # We know it's a List[...], Union[...] or Optional[...]
+
+                inner_type = get_type_args(field.type)[0]
+                if inspect.isclass(inner_type) and issubclass(inner_type, GraphQLFragmentMixin):
+                    # We know it's either:
+                    # - List[GraphQLFragmentMixin]
+                    # - Union[GraphQLFragmentMixin]
+                    # - Optional[GraphQLFragmentMixin]
+                    subclass._lazy_loadable_fields.add(field.name)
+
+                setattr(subclass, f"load_{field.name}", GraphQLFragmentMixin._make_field_loader(field.name))
 
     @classmethod
     def gql_model_name(cls) -> str:
@@ -145,26 +227,47 @@ class GraphQLFragmentMixin:
     #
     # If we do that, we need to modify this method to memoize what fragments were already created
     # so that we exit the recursion gracefully
-    @staticmethod
-    def _get_fragments_for_field(type: Union[Type[Any], str], field_name: str) -> Union[str, List[GraphQLFragment]]:
-        if inspect.isclass(type) and issubclass(type, GraphQLFragmentMixin):
-            return type.gql_fragments()
+    @classmethod
+    def _get_fragments_for_field(
+        cls,
+        type: Union[Type[Any], str],
+        field_name: str,
+        *,
+        lazy: bool,
+    ) -> Union[str, List[GraphQLFragment], None]:
+        if lazy and field_name in cls._lazy_loadable_fields:
+            return None
 
+        # field is a GraphQLFragmentMixin
+        if inspect.isclass(type) and issubclass(type, GraphQLFragmentMixin):
+            return type.gql_fragments(lazy=lazy)
+
+        # field is an Optional, Union or List
         type_origin = get_type_origin(type)
-        # Optional = Union[X, None]
         if type_origin is list or type_origin is Union:
             inner_type = get_type_args(type)[0]
-            return GraphQLFragmentMixin._get_fragments_for_field(inner_type, field_name)
+
+            return cls._get_fragments_for_field(
+                inner_type,
+                field_name,
+                lazy=lazy,
+            )
 
         return snake_case_to_camel_case(field_name)
 
     @classmethod
     @cache
-    def gql_fragments(cls) -> List[GraphQLFragment]:
+    def gql_fragments(cls, *, lazy: bool) -> List[GraphQLFragment]:
         """Get the GraphQL fragments needed to query for this model.
 
         The first (0th) fragment is always the fragment that represents the model itself.
         The remaining fragments are dependencies of the model, if any.
+
+        Dependencies only be returned if `lazy=False`. If `lazy=True`, the returned GraphQL
+        query won't include child models.
+
+        Arguments:
+            lazy: whether to fetch nested models.
         """
         gql_model_name = cls.gql_model_name()
         fragment_name = f"fragment{cls.__name__}"
@@ -174,8 +277,14 @@ class GraphQLFragmentMixin:
         query_elements: List[str] = []
         dependencies: Set[GraphQLFragment] = set()
         for field in fields(cls):
-            frag_or_field = GraphQLFragmentMixin._get_fragments_for_field(field.type, field.name)
-            if isinstance(frag_or_field, str):
+            frag_or_field = cls._get_fragments_for_field(
+                field.type,
+                field.name,
+                lazy=lazy,
+            )
+            if frag_or_field is None:
+                assert lazy
+            elif isinstance(frag_or_field, str):
                 query_elements.append(frag_or_field)
             else:
                 frag = frag_or_field[0]
@@ -190,5 +299,12 @@ class GraphQLFragmentMixin:
             {query_str}
         }}
         """)
-        fragment = GraphQLFragment(name=fragment_name, body=fragment_body)
+        fragment = GraphQLFragment(
+            name=fragment_name,
+            body=fragment_body,
+            lazy=lazy,
+        )
         return [fragment] + list(dependencies)
+
+
+NOT_LAZY_META = {GraphQLFragmentMixin.NOT_LAZY: True}

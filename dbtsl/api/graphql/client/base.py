@@ -13,6 +13,7 @@ from dbtsl.api.graphql.protocol import (
 )
 from dbtsl.backoff import ExponentialBackoff
 from dbtsl.error import AuthError
+from dbtsl.models.base import GraphQLFragmentMixin
 from dbtsl.timeout import TimeoutOptions
 
 TTransport = TypeVar("TTransport", Transport, AsyncTransport)
@@ -59,8 +60,11 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        *,
+        lazy: bool,
     ):
         self.environment_id = environment_id
+        self.lazy = lazy
 
         url_format = url_format or self.DEFAULT_URL_FORMAT
         server_url = url_format.format(server_host=server_host)
@@ -100,6 +104,18 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
             return AuthError(err.args)
 
         return err
+
+    def _attach_self_to_parsed_response(self, resp: object) -> None:
+        # NOTE: we're setting the _client_unchecked here instead of making a public property
+        # because we don't want end-users to be aware of this. You can consider _client_unchecked
+        # as public to the module but not to end users
+        if isinstance(resp, GraphQLFragmentMixin):
+            resp._client_unchecked = self  # type: ignore
+            return
+
+        if isinstance(resp, list):
+            for v in resp:  # pyright: ignore[reportUnknownVariableType]
+                self._attach_self_to_parsed_response(v)  # pyright: ignore[reportUnknownArgumentType]
 
     @property
     def _gql_session(self) -> TSession:
@@ -145,6 +161,8 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
         auth_token: str,
         url_format: Optional[str] = None,
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
+        *,
+        lazy: bool,
     ) -> TClient:
         """Initialize the Semantic Layer client.
 
@@ -154,5 +172,6 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
             auth_token: the API auth token
             url_format: the URL format string to construct the final URL with
             timeout: `TimeoutOptions` or total timeout
+            lazy: lazy load large fields
         """
         pass

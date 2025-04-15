@@ -1,9 +1,8 @@
+import dataclasses as dc
 import inspect
 import warnings
-from dataclasses import dataclass
-from dataclasses import field as dc_field
 from enum import Enum
-from typing import List
+from typing import List, Optional, Union
 
 import pytest
 from mashumaro.codecs.basic import decode
@@ -76,7 +75,7 @@ def test_all_enum_models_are_flexible() -> None:
 
 
 def test_base_model_auto_alias() -> None:
-    @dataclass
+    @dc.dataclass
     class SubModel(BaseModel):
         hello_world: str
 
@@ -93,19 +92,59 @@ def test_base_model_auto_alias() -> None:
     assert codec_model.hello_world == "asdf"
 
 
-def test_graphql_fragment_mixin() -> None:
-    @dataclass
-    class A(BaseModel, GraphQLFragmentMixin):
-        foo_bar: str
+@dc.dataclass
+class A(BaseModel, GraphQLFragmentMixin):
+    foo_bar: str
 
-    @dataclass
-    class B(BaseModel, GraphQLFragmentMixin):
-        hello_world: str
-        baz: str
-        a: A
-        many_a: List[A]
 
-    a_fragments = A.gql_fragments()
+@dc.dataclass
+class B(BaseModel, GraphQLFragmentMixin):
+    hello_world: str
+    baz: str
+    optional_str: Optional[str]
+    str_or_int: Union[str, int]
+    eager_a: A
+    not_lazy_optional_a: Optional[A] = dc.field(metadata={GraphQLFragmentMixin.NOT_LAZY: True})
+    lazy_a: Optional[A] = None
+    many_a: List[A] = dc.field(default_factory=list)
+
+    def _load_lazy_a(self) -> A:
+        return A(foo_bar="a")
+
+    def _load_many_a(self) -> List[A]:
+        return [A(foo_bar="a1"), A(foo_bar="a2")]
+
+
+GraphQLFragmentMixin._register_subclasses()
+
+
+def test_graphql_fragment_mixin_register_subclasses() -> None:
+    GraphQLFragmentMixin._register_subclasses()
+    assert A._lazy_loadable_fields == set()
+    assert B._lazy_loadable_fields == {"lazy_a", "many_a"}
+
+
+def test_graphql_fragment_mixin_lazy_loadable_fields_properties() -> None:
+    errors: List[str] = []
+    for model in GraphQLFragmentMixin.__subclasses__():
+        for field in dc.fields(model):
+            if field.name not in model._lazy_loadable_fields:
+                continue
+
+            field_name = f"{model.__name__}.{field.name}"
+
+            if field.default == dc.MISSING and field.default_factory == dc.MISSING:
+                errors.append(f"{field_name} is lazy-loadable but has no default")
+
+            if not hasattr(model, f"_load_{field.name}"):
+                errors.append(f"{field_name} is lazy-loadable but has no loader method")
+
+    error_msg = "\n".join(errors)
+    assert len(errors) == 0, error_msg
+
+
+def test_graphql_fragment_mixin_eager() -> None:
+    a_fragments = A.gql_fragments(lazy=False)
     assert len(a_fragments) == 1
     a_fragment = a_fragments[0]
 
@@ -116,8 +155,9 @@ def test_graphql_fragment_mixin() -> None:
     """)
     assert a_fragment.name == "fragmentA"
     assert a_fragment.body == a_expect
+    assert not a_fragment.lazy
 
-    b_fragments = B.gql_fragments()
+    b_fragments = B.gql_fragments(lazy=False)
     assert len(b_fragments) == 2
     b_fragment = b_fragments[0]
 
@@ -125,7 +165,15 @@ def test_graphql_fragment_mixin() -> None:
     fragment fragmentB on B {
         helloWorld
         baz
-        a {
+        optionalStr
+        strOrInt
+        eagerA {
+            ...fragmentA
+        }
+        notLazyOptionalA {
+            ...fragmentA
+        }
+        lazyA {
             ...fragmentA
         }
         manyA {
@@ -135,6 +183,45 @@ def test_graphql_fragment_mixin() -> None:
     """)
     assert b_fragment.name == "fragmentB"
     assert b_fragment.body == b_expect
+    assert not b_fragment.lazy
+    assert b_fragments[1] == a_fragment
+
+
+def test_graphql_fragment_mixin_lazy() -> None:
+    a_fragments = A.gql_fragments(lazy=True)
+    assert len(a_fragments) == 1
+    a_fragment = a_fragments[0]
+
+    a_expect = normalize_query("""
+    fragment fragmentA on A {
+        fooBar
+    }
+    """)
+    assert a_fragment.name == "fragmentA"
+    assert a_fragment.body == a_expect
+    assert a_fragment.lazy
+
+    b_fragments = B.gql_fragments(lazy=True)
+    assert len(b_fragments) == 2
+    b_fragment = b_fragments[0]
+
+    b_expect = normalize_query("""
+    fragment fragmentB on B {
+        helloWorld
+        baz
+        optionalStr
+        strOrInt
+        eagerA {
+            ...fragmentA
+        }
+        notLazyOptionalA {
+            ...fragmentA
+        }
+    }
+    """)
+    assert b_fragment.name == "fragmentB"
+    assert b_fragment.body == b_expect
+    assert b_fragment.lazy
     assert b_fragments[1] == a_fragment
 
 
@@ -159,10 +246,10 @@ def test_DeprecatedMixin() -> None:
 def test_attr_deprecation_warning() -> None:
     msg = "i am deprecated :("
 
-    @dataclass(frozen=True)
+    @dc.dataclass(frozen=True)
     class MyClassWithDeprecatedField(BaseModel):
         its_fine: bool = True
-        oh_no: bool = dc_field(default=False, metadata={BaseModel.DEPRECATED: msg})
+        oh_no: bool = dc.field(default=False, metadata={BaseModel.DEPRECATED: msg})
 
     BaseModel._register_subclasses()
 
