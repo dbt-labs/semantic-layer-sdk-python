@@ -46,6 +46,8 @@ class ADBCProtocol:
                 g = f'Dimension("{val.name}")'
             elif val.type == GroupByType.ENTITY:
                 g = f'Entity("{val.name}")'
+            else:  # val.type == GroupByType.TIME_DIMENSION
+                return f'TimeDimension("{val.name}", "{val.grain}")'
             if val.grain:
                 grain_str = val.grain.lower()
                 g += f'.grain("{grain_str}")'

@@ -31,6 +31,21 @@ def test_serialize_val_OrderByGroupBy() -> None:
     )
 
 
+def test_serialize_time_dimension_group_by() -> None:
+    assert (
+        ADBCProtocol._serialize_val(
+            GroupByParam(name="time_dim", type=GroupByType.TIME_DIMENSION, grain="month"),
+        )
+        == 'TimeDimension("time_dim", "month")'
+    )
+    assert (
+        ADBCProtocol._serialize_val(
+            GroupByParam(name="time_dim", type=GroupByType.TIME_DIMENSION, grain="week"),
+        )
+        == 'TimeDimension("time_dim", "week")'
+    )
+
+
 def test_serialize_query_params_metrics() -> None:
     params = ADBCProtocol._serialize_params_dict({"metrics": ["a", "b"]}, ["metrics"])
 
