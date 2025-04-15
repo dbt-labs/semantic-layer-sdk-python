@@ -7,6 +7,7 @@ class GroupByType(Enum):
     """The type of a group_by, i.e a dimension or an entity."""
 
     DIMENSION = "dimension"
+    TIME_DIMENSION = "time_dimension"
     ENTITY = "entity"
 
 
