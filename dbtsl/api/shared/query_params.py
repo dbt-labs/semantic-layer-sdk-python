@@ -4,6 +4,8 @@ from typing import List, Optional, TypedDict, Union
 
 
 class GroupByType(Enum):
+    """The type of a group_by, i.e a dimension or an entity."""
+
     DIMENSION = "dimension"
     ENTITY = "entity"
 
