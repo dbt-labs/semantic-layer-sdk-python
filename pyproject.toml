@@ -9,15 +9,17 @@ authors = [
   {name = "dbt Labs"}
 ]
 readme = "README.md"
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.9,<3.14"
 dynamic = ["version"]
 
 dependencies = [
   "mashumaro>=3.11,<4.0",
   "typing-extensions>=4.4.0,<5.0.0; python_version<='3.11'",
-  "typing-extensions>=4.7.0,<5.0.0; python_version>= '3.12'",
+  "typing-extensions>=4.7.0,<5.0.0; python_version=='3.12'",
+  "typing-extensions>=4.12.0,<5.0.0; python_version>='3.13'",
   "pyarrow>=12.0.0; python_version<='3.11'",
-  "pyarrow>=14.0.0; python_version>='3.12'",
+  "pyarrow>=14.0.0; python_version=='3.12'",
+  "pyarrow>=18.0.0; python_version>='3.13'",
   "adbc-driver-flightsql>=0.11.0",
   "adbc-driver-manager>=0.11.0",
 ]
@@ -92,7 +94,7 @@ integration = "pytest tests/integration/ --server-schema tests/server_schema.gql
 # - Dependency resolution strategy (see UV_RESOLUTION in uv's manual)
 #   The SDK should work with a range of possible dependency versions
 [[tool.hatch.envs.test.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12"]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
 deps-resolution = ["lowest", "lowest-direct", "highest"]
 
 [tool.hatch.envs.test.overrides]
@@ -101,6 +103,8 @@ matrix.python.env-vars = [
   { key = "UV_CONSTRAINT", value = "constraints/py310.txt", if = ["3.10"] },
   { key = "UV_CONSTRAINT", value = "constraints/py311.txt", if = ["3.11"] },
   { key = "UV_CONSTRAINT", value = "constraints/py312.txt", if = ["3.12"] },
+  { key = "UV_CONSTRAINT", value = "constraints/py313.txt", if = ["3.13"] },
+
 ]
 matrix.deps-resolution.env-vars = [
   { key = "UV_RESOLUTION" },
