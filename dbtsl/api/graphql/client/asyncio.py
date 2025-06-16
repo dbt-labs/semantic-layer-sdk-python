@@ -157,7 +157,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
             variables={"query_id": query_id, "page_num": 1},
         )
         if first_page_results.status != QueryStatus.SUCCESSFUL:
-            raise QueryFailedError()
+            raise QueryFailedError(first_page_results.error, first_page_results.status, query_id)
 
         assert first_page_results.total_pages is not None
 

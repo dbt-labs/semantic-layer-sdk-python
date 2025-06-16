@@ -57,7 +57,7 @@ class BaseADBCClient:
                 raise AuthError(err.args) from err
 
             if err.status_code == AdbcStatusCode.INVALID_ARGUMENT:
-                raise QueryFailedError(err.args) from err
+                raise QueryFailedError(err.details, err.status_code) from err
 
             # TODO: timeouts are not implemented for ADBC
             # See: https://arrow.apache.org/adbc/current/driver/flight_sql.html#timeouts
