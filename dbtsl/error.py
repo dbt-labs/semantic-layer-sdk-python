@@ -55,6 +55,9 @@ class QueryFailedError(SemanticLayerError):
             status: The stringified status or the response
             query_id: The query ID for GQL requests
         """
+        # extract first error message if we get a list with just 1 message
+        if isinstance(message, list) and len(message) == 1:
+            message = message[0]
         self.message = str(message)
         self.status = str(status)
         self.query_id = query_id
