@@ -56,9 +56,9 @@ class QueryFailedError(SemanticLayerError):
             query_id: The query ID for GQL requests
         """
         # extract first error message if we get a list with just 1 message
-        if isinstance(message, list) and len(message) == 1:
-            message = message[0]
-        self.message = str(message)
+        if isinstance(message, list) and len(message) == 1:  # pyright: ignore
+            message = message[0]  # pyright: ignore
+        self.message = str(message)  # pyright: ignore
         self.status = str(status)
         self.query_id = query_id
 
