@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import Any, Optional
 
 
 class SemanticLayerError(RuntimeError):
@@ -47,7 +47,7 @@ class RetryTimeoutError(TimeoutError):
 class QueryFailedError(SemanticLayerError):
     """Raise whenever a query has failed."""
 
-    def __init__(self, message: Any, status: Any, query_id: str | None = None) -> None:
+    def __init__(self, message: Any, status: Any, query_id: Optional[str] = None) -> None:
         """Initialize the query failed error.
 
         Args:
