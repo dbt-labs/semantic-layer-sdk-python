@@ -63,7 +63,7 @@ class QueryFailedError(SemanticLayerError):
         self.query_id = query_id
 
     def __str__(self) -> str:  # noqa: D105
-        content = f"message=\"{self.message}\"), status={self.status}"
+        content = f'message="{self.message}"), status={self.status}'
         if self.query_id:
             content += f", query_id={self.query_id}"
         return f"{self.__class__.__name__}({content})"
