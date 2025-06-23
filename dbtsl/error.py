@@ -1,4 +1,5 @@
 import json
+from typing import Any, Optional
 
 
 class SemanticLayerError(RuntimeError):
@@ -45,6 +46,27 @@ class RetryTimeoutError(TimeoutError):
 
 class QueryFailedError(SemanticLayerError):
     """Raise whenever a query has failed."""
+
+    def __init__(self, message: Any, status: Any, query_id: Optional[str] = None) -> None:
+        """Initialize the query failed error.
+
+        Args:
+            message: The message or error details
+            status: The stringified status or the response
+            query_id: The query ID for GQL requests
+        """
+        # extract first error message if we get a list with just 1 message
+        if isinstance(message, list) and len(message) == 1:  # pyright: ignore
+            message = message[0]  # pyright: ignore
+        self.message = str(message)  # pyright: ignore
+        self.status = str(status)
+        self.query_id = query_id
+
+    def __str__(self) -> str:  # noqa: D105
+        content = f'message="{self.message}"), status={self.status}'
+        if self.query_id:
+            content += f", query_id={self.query_id}"
+        return f"{self.__class__.__name__}({content})"
 
 
 class AuthError(SemanticLayerError):
