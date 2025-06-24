@@ -1,3 +1,0 @@
-kind: Under the Hood
-body: add error, status, and query_id to QueryFailedError
-time: 2025-06-16T10:10:46.504635-06:00
