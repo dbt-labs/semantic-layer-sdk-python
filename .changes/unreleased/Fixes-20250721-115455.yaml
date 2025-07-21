@@ -1,0 +1,3 @@
+kind: Fixes
+body: Remove unneeded subquery, which creates invalid SQL for some dialects.
+time: 2025-07-21T11:54:55.027236-07:00
