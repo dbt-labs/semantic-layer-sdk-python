@@ -82,10 +82,7 @@ def test_serialize_query_params_complete_query() -> None:
 
 def test_get_query_sql_simple_query() -> None:
     sql = ADBCProtocol.get_query_sql(params={"metrics": ["a", "b"], "order_by": ["-a"]})
-    expected = (
-        'SELECT * FROM {{ semantic_layer.query(metrics=["a","b"],'
-        'order_by=[Metric("a").descending(True)],read_cache=True) }}'
-    )
+    expected = '{{ semantic_layer.query(metrics=["a","b"],order_by=[Metric("a").descending(True)],read_cache=True) }}'
     assert sql == expected
 
 
@@ -100,7 +97,7 @@ def test_get_query_sql_group_by_param() -> None:
         }
     )
     expected = (
-        "SELECT * FROM {{ semantic_layer.query("
+        "{{ semantic_layer.query("
         'group_by=[Dimension("c").grain("day"),Entity("d").grain("week")],metrics=["a","b"],read_cache=True) }}'
     )
     assert sql == expected
@@ -108,5 +105,5 @@ def test_get_query_sql_group_by_param() -> None:
 
 def test_get_query_sql_dimension_values_query() -> None:
     sql = ADBCProtocol.get_dimension_values_sql(params={"metrics": ["a", "b"]})
-    expected = 'SELECT * FROM {{ semantic_layer.dimension_values(metrics=["a","b"]) }}'
+    expected = '{{ semantic_layer.dimension_values(metrics=["a","b"]) }}'
     assert sql == expected
