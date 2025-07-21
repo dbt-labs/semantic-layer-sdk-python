@@ -83,10 +83,10 @@ class ADBCProtocol:
         strict_params_dict = {field: getattr(strict_params, field) for field in params_fields}
 
         serialized_params = cls._serialize_params_dict(strict_params_dict, params_fields)
-        return f"SELECT * FROM {{{{ semantic_layer.query({serialized_params}) }}}}"
+        return f"{{{{ semantic_layer.query({serialized_params}) }}}}"
 
     @classmethod
     def get_dimension_values_sql(cls, params: DimensionValuesQueryParameters) -> str:
         """Get the SQL that will be sent via Arrow Flight to the server based on dimension values query parameters."""
         serialized_params = cls._serialize_params_dict(params, list(DimensionValuesQueryParameters.__optional_keys__))
-        return f"SELECT * FROM {{{{ semantic_layer.dimension_values({serialized_params}) }}}}"
+        return f"{{{{ semantic_layer.dimension_values({serialized_params}) }}}}"
