@@ -50,7 +50,7 @@ class BaseADBCClient:
                 DatabaseOptions.AUTHORIZATION_HEADER.value: f"Bearer {self._auth_token}",
                 f"{DatabaseOptions.RPC_CALL_HEADER_PREFIX.value}environmentid": str(self._environment_id),
                 **self._extra_db_kwargs(),
-                **{f"{StatementOptions.RPC_CALL_HEADER_PREFIX.value}{k}": v for k, v in self._extra_headers.items()}
+                **{f"{StatementOptions.RPC_CALL_HEADER_PREFIX.value}{k}": v for k, v in self._extra_headers.items()},
             },
         )
 

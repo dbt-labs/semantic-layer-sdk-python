@@ -57,7 +57,9 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         NOTE: If `timeout` is a `TimeoutOptions`, the `tls_close_timeout` will not be used, since
         `requests` does not support TLS termination timeouts.
         """
-        super().__init__(server_host, environment_id, auth_token, url_format, timeout, lazy=lazy, extra_headers=extra_headers)
+        super().__init__(
+            server_host, environment_id, auth_token, url_format, timeout, lazy=lazy, extra_headers=extra_headers
+        )
 
     @override
     def _create_transport(self, url: str, headers: Dict[str, str]) -> RequestsHTTPTransport:
