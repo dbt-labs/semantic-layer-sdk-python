@@ -40,6 +40,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
         *,
         lazy: bool,
+        extra_headers: Optional[Dict[str, str]] = None,
     ):
         """Initialize the metadata client.
 
@@ -56,7 +57,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         NOTE: If `timeout` is a `TimeoutOptions`, the `tls_close_timeout` will not be used, since
         `requests` does not support TLS termination timeouts.
         """
-        super().__init__(server_host, environment_id, auth_token, url_format, timeout, lazy=lazy)
+        super().__init__(server_host, environment_id, auth_token, url_format, timeout, lazy=lazy, extra_headers=extra_headers)
 
     @override
     def _create_transport(self, url: str, headers: Dict[str, str]) -> RequestsHTTPTransport:
