@@ -74,6 +74,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             environment_id=environment_id,
             auth_token=auth_token,
             url_format=env.ADBC_URL_FORMAT,
+            extra_headers=extra_headers,
         )
 
     @property
