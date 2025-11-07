@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "!startsWith(github.event.pull_request.title, 'version:')"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955  # actions/checkout@v4
       - run: git fetch --depth=1 origin main
 
       - name: Setup Python ${{ env.PYTHON_VERSION }} environment
@@ -34,7 +34,7 @@ jobs:
 
       - name: Get latest changie version
         id: latest
-        uses: miniscruff/changie-action@v2
+        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23  # miniscruff/changie-action@v2
         with:
           version: latest
           args: latest
