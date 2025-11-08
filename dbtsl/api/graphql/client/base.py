@@ -62,6 +62,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
         *,
         lazy: bool,
+        extra_headers: Optional[Dict[str, str]] = None,
     ):
         self.environment_id = environment_id
         self.lazy = lazy
@@ -83,6 +84,7 @@ class BaseGraphQLClient(Generic[TTransport, TSession]):
         headers = {
             "authorization": f"bearer {auth_token}",
             **self._extra_headers(),
+            **(extra_headers or {}),
         }
         transport = self._create_transport(url=server_url, headers=headers)
         self._gql = Client(transport=transport, execute_timeout=self.timeout.execute_timeout)
@@ -163,6 +165,7 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
         *,
         lazy: bool,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> TClient:
         """Initialize the Semantic Layer client.
 
@@ -173,5 +176,6 @@ class GraphQLClientFactory(Protocol, Generic[TClient]):  # noqa: D101
             url_format: the URL format string to construct the final URL with
             timeout: `TimeoutOptions` or total timeout
             lazy: lazy load large fields
+            extra_headers: extra headers to be sent with the request.
         """
         pass

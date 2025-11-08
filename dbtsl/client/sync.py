@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Iterator, Optional, Union
+from typing import Dict, Iterator, Optional, Union
 
 from typing_extensions import Self
 
@@ -28,6 +28,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
         *,
         lazy: bool = False,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> None:
         """Initialize the Semantic Layer client.
 
@@ -37,6 +38,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
             host: the Semantic Layer API host
             timeout: `TimeoutOptions` or total timeout for the underlying GraphQL client.
             lazy: if true, nested metadata queries will be need to be explicitly populated on-demand.
+            extra_headers: extra headers to be sent with the request.
         """
         super().__init__(
             environment_id=environment_id,
@@ -46,6 +48,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
             adbc_factory=SyncADBCClient,
             timeout=timeout,
             lazy=lazy,
+            extra_headers=extra_headers,
         )
 
     @contextmanager
