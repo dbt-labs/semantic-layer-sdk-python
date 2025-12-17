@@ -12,6 +12,7 @@ from dbtsl.api.shared.query_params import (
     validate_query_parameters,
 )
 from dbtsl.models import Dimension, Entity, Measure, Metric
+from dbtsl.models.environment import EnvironmentInfo
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 from dbtsl.models.saved_query import SavedQuery
 
@@ -358,6 +359,29 @@ class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
         return cast(str, data["compileSql"]["sql"])
 
 
+class GetEnvironmentInfoOperation(ProtocolOperation[EmptyVariables, EnvironmentInfo]):
+    """Get information about the Semantic Layer environment."""
+
+    @override
+    def get_request_text(self, *, lazy: bool) -> str:
+        query = """
+        query getEnvironmentInfo($environmentId: BigInt!) {
+            environmentInfo(environmentId: $environmentId) {
+                ...&fragment
+            }
+        }
+        """
+        return render_query(query, EnvironmentInfo.gql_fragments(lazy=lazy))
+
+    @override
+    def get_request_variables(self, environment_id: int, variables: EmptyVariables) -> Dict[str, Any]:
+        return {"environmentId": environment_id}
+
+    @override
+    def parse_response(self, data: Dict[str, Any]) -> EnvironmentInfo:
+        return decode_to_dataclass(data["environmentInfo"], EnvironmentInfo)
+
+
 class GraphQLProtocol:
     """Holds the GraphQL implementation for each of method in the API.
 
@@ -373,3 +397,4 @@ class GraphQLProtocol:
     create_query = CreateQueryOperation()
     get_query_result = GetQueryResultOperation()
     compile_sql = CompileSqlOperation()
+    environment_info = GetEnvironmentInfoOperation()

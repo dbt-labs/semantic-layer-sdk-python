@@ -11,6 +11,7 @@ from dbtsl.models import (
     AsyncMetric,
     Dimension,
     Entity,
+    EnvironmentInfo,
     Measure,
     SavedQuery,
 )
@@ -48,6 +49,9 @@ class AsyncGraphQLClient:
 
     async def saved_queries(self) -> List[SavedQuery]:
         """Get a list of all available saved queries."""
+        ...
+    async def environment_info(self) -> EnvironmentInfo:
+        """Get information about the Semantic Layer environment."""
         ...
 
     @overload

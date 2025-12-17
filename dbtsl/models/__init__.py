@@ -7,6 +7,7 @@ generated code from our GraphQL schema.
 from .base import BaseModel, GraphQLFragmentMixin
 from .dimension import Dimension, DimensionType
 from .entity import Entity, EntityType
+from .environment import EnvironmentInfo, SqlDialect, SqlEngine
 from .measure import AggregationType, Measure
 from .metric import AsyncMetric, Metric, MetricType, SyncMetric
 from .query import QueryResult
@@ -36,6 +37,7 @@ __all__ = [
     "DimensionType",
     "Entity",
     "EntityType",
+    "EnvironmentInfo",
     "Export",
     "ExportConfig",
     "ExportDestinationType",
@@ -48,6 +50,8 @@ __all__ = [
     "SavedQueryMetricParam",
     "SavedQueryQueryParams",
     "SavedQueryWhereParam",
+    "SqlDialect",
+    "SqlEngine",
     "SyncMetric",
     "TimeGranularity",
 ]
