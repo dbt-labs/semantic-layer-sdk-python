@@ -10,6 +10,7 @@ from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByM
 from dbtsl.models import (
     Dimension,
     Entity,
+    EnvironmentInfo,
     Measure,
     SavedQuery,
     SyncMetric,
@@ -81,7 +82,9 @@ class SyncGraphQLClient:
     def compile_sql(self, **query_params: Unpack[QueryParameters]) -> str:
         """Get the compiled SQL that would be sent to the warehouse by a query."""
         ...
-
+    def environment_info(self) -> EnvironmentInfo:
+        """Get information about the Semantic Layer environment."""
+        ...
     @overload
     def query(
         self,

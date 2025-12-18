@@ -7,7 +7,7 @@ import pyarrow as pa
 from typing_extensions import Self, Unpack, overload
 
 from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByMetric, QueryParameters
-from dbtsl.models import Dimension, Entity, Measure, SavedQuery, SyncMetric
+from dbtsl.models import Dimension, Entity, EnvironmentInfo, Measure, SavedQuery, SyncMetric
 from dbtsl.timeout import TimeoutOptions
 
 class SyncSemanticLayerClient:
@@ -113,6 +113,10 @@ class SyncSemanticLayerClient:
 
     def saved_queries(self) -> List[SavedQuery]:
         """Get a list of all available saved queries."""
+        ...
+
+    def environment_info(self) -> EnvironmentInfo:
+        """Get information about the Semantic Layer environment."""
         ...
 
     def session(self) -> AbstractContextManager[Iterator[Self]]:

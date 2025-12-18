@@ -16,6 +16,7 @@ VARIABLES: dict[str, list[dict[str, Any]]] = {
     "get_query_result": [{"query_id": 1}],
     "create_query": TEST_QUERIES,
     "compile_sql": TEST_QUERIES,
+    "environment_info": [{}],
 }
 
 TestCase = Tuple[str, Dict[str, Any]]
