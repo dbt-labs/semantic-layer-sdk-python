@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, Generic, Optional, TypeVar, Union
+from typing import Any, Dict, Generic, Optional, TypeVar, Union
 
 import dbtsl.env as env
 from dbtsl.api.adbc.client.base import ADBCClientFactory, BaseADBCClient
@@ -44,6 +44,7 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
         timeout: Optional[Union[TimeoutOptions, float, int]] = None,
         *,
         lazy: bool,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> None:
         """Initialize the Semantic Layer client.
 
@@ -67,12 +68,14 @@ class BaseSemanticLayerClient(ABC, Generic[TGQLClient, TADBCClient]):
             url_format=env.GRAPHQL_URL_FORMAT,
             timeout=timeout,
             lazy=lazy,
+            extra_headers=extra_headers,
         )
         self._adbc = adbc_factory(
             server_host=host,
             environment_id=environment_id,
             auth_token=auth_token,
             url_format=env.ADBC_URL_FORMAT,
+            extra_headers=extra_headers,
         )
 
     @property
