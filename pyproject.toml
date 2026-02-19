@@ -29,7 +29,7 @@ async = ["gql[aiohttp]>=3.5.0,<4.0.0"]
 sync = ["gql[requests]>=3.5.0,<4.0.0"]
 dev = [
   "pyarrow-stubs",
-  "ruff",
+  "ruff>=0.15",
   "basedpyright",
   "mypy",
   "uv",

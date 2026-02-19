@@ -130,7 +130,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
 
             elapsed_s = time.time() - start_s
             if elapsed_s > total_timeout_s:
-                raise RetryTimeoutError(timeout_s=total_timeout_s)
+                raise RetryTimeoutError(timeout_s=total_timeout_s, status=qr.status.value)
 
             time.sleep(sleep_ms / 1000)
 

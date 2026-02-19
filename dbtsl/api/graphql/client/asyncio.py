@@ -142,7 +142,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
 
             elapsed_s = time.time() - start_s
             if elapsed_s > total_timeout_s:
-                raise RetryTimeoutError(timeout_s=total_timeout_s)
+                raise RetryTimeoutError(timeout_s=total_timeout_s, status=qr.status.value)
 
             await asyncio.sleep(sleep_ms / 1000)
 

@@ -43,6 +43,22 @@ class ExecuteTimeoutError(TimeoutError):
 class RetryTimeoutError(TimeoutError):
     """Raise whenever a timeout occurred while retrying an operation against the servers."""
 
+    def __init__(self, *, timeout_s: float, status: Optional[str] = None) -> None:
+        """Initialize the retry timeout error.
+
+        Args:
+            timeout_s: The maximum time limit that got exceeded, in seconds
+            status: The last known query status before the timeout occurred
+            **_kwargs: any other exception kwargs
+        """
+        super().__init__(timeout_s=timeout_s)
+        self.status = status
+
+    def __str__(self) -> str:  # noqa: D105
+        if self.status is not None:
+            return f"{self.__class__.__name__}(timeout_s={self.timeout_s}, status={self.status})"
+        return f"{self.__class__.__name__}(timeout_s={self.timeout_s})"
+
 
 class QueryFailedError(SemanticLayerError):
     """Raise whenever a query has failed."""

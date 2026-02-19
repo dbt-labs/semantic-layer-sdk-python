@@ -10,6 +10,7 @@ from pytest_mock import MockerFixture
 from dbtsl.api.graphql.client.asyncio import AsyncGraphQLClient
 from dbtsl.api.graphql.client.sync import SyncGraphQLClient
 from dbtsl.api.graphql.protocol import GetQueryResultVariables, GraphQLProtocol, ProtocolOperation
+from dbtsl.error import RetryTimeoutError
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
 # The following 2 tests are copies of each other since testing the same sync/async functionality is
@@ -145,3 +146,63 @@ def test_sync_query_multiple_pages(mocker: MockerFixture) -> None:
     )
 
     assert result_table.equals(table, check_metadata=True)
+
+
+# avoid raising mock warning related to mocking a context manager
+@pytest.mark.filterwarnings("ignore::pytest_mock.PytestMockWarning")
+def test_sync_poll_timeout_includes_status(mocker: MockerFixture) -> None:
+    """Test that RetryTimeoutError includes the last known query status."""
+    client = SyncGraphQLClient(server_host="test", environment_id=0, auth_token="test", timeout=0.001, lazy=False)
+
+    compiled_result = QueryResult(
+        query_id=QueryId("test-query-id"),
+        status=QueryStatus.COMPILED,
+        sql=None,
+        error=None,
+        total_pages=None,
+        arrow_result=None,
+    )
+
+    run_mock = MagicMock(return_value=compiled_result)
+    mocker.patch.object(client, "_run", new=run_mock)
+
+    mocker.patch.object(client, "create_query", return_value=QueryId("test-query-id"))
+
+    gql_mock = mocker.patch.object(client, "_gql")
+    mocker.patch.object(gql_mock, "__aenter__")
+    mocker.patch("dbtsl.api.graphql.client.sync.isinstance", return_value=True)
+
+    with client.session():
+        with pytest.raises(RetryTimeoutError) as exc_info:
+            client.query(metrics=["m1"])
+
+    assert exc_info.value.status == "COMPILED"
+
+
+async def test_async_poll_timeout_includes_status(mocker: MockerFixture) -> None:
+    """Test that RetryTimeoutError includes the last known query status (async)."""
+    client = AsyncGraphQLClient(server_host="test", environment_id=0, auth_token="test", timeout=0.001, lazy=False)
+
+    compiled_result = QueryResult(
+        query_id=QueryId("test-query-id"),
+        status=QueryStatus.COMPILED,
+        sql=None,
+        error=None,
+        total_pages=None,
+        arrow_result=None,
+    )
+
+    run_mock = AsyncMock(return_value=compiled_result)
+    mocker.patch.object(client, "_run", new=run_mock)
+
+    mocker.patch.object(client, "create_query", return_value=QueryId("test-query-id"), new_callable=AsyncMock)
+
+    gql_mock = mocker.patch.object(client, "_gql")
+    mocker.patch.object(gql_mock, "__aenter__", new_callable=AsyncMock)
+    mocker.patch("dbtsl.api.graphql.client.asyncio.isinstance", return_value=True)
+
+    async with client.session():
+        with pytest.raises(RetryTimeoutError) as exc_info:
+            await client.query(metrics=["m1"])
+
+    assert exc_info.value.status == "COMPILED"
