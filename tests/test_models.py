@@ -67,7 +67,7 @@ def test_FlexibleEnumMeta_subclass_with_invalid_unknown_attribute() -> None:
 def test_all_enum_models_are_flexible() -> None:
     """Make sure we didn't forget to make any enum type flexible."""
     exported_enum_classes = inspect.getmembers(
-        ALL_EXPORTED_MODELS, lambda member: (inspect.isclass(member) and issubclass(member, Enum))
+        ALL_EXPORTED_MODELS, lambda member: inspect.isclass(member) and issubclass(member, Enum)
     )
     for enum_class_name, _ in exported_enum_classes:
         msg = f"Enum {enum_class_name} needs to have FlexibleEnumMeta metaclass."
