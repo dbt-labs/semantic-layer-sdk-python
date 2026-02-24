@@ -2,7 +2,7 @@ from abc import abstractmethod
 from contextlib import AbstractContextManager
 from typing import Dict, Generic, Optional, Protocol, TypeVar, Union
 
-from adbc_driver_flightsql import DatabaseOptions
+from adbc_driver_flightsql import DatabaseOptions, StatementOptions
 from adbc_driver_flightsql.dbapi import Connection
 from adbc_driver_flightsql.dbapi import connect as adbc_connect  # pyright: ignore[reportUnknownVariableType]
 from adbc_driver_manager import AdbcStatusCode, ProgrammingError
@@ -33,11 +33,13 @@ class BaseADBCClient:
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> None:
         url_format = url_format or self.DEFAULT_URL_FORMAT
         self._conn_str = url_format.format(server_host=server_host)
         self._environment_id = environment_id
         self._auth_token = auth_token
+        self._extra_headers = extra_headers or {}
 
         self._conn_unsafe: Union[Connection, None] = None
 
@@ -48,6 +50,7 @@ class BaseADBCClient:
                 DatabaseOptions.AUTHORIZATION_HEADER.value: f"Bearer {self._auth_token}",
                 f"{DatabaseOptions.RPC_CALL_HEADER_PREFIX.value}environmentid": str(self._environment_id),
                 **self._extra_db_kwargs(),
+                **{f"{StatementOptions.RPC_CALL_HEADER_PREFIX.value}{k}": v for k, v in self._extra_headers.items()},
             },
         )
 
@@ -88,7 +91,14 @@ TClient = TypeVar("TClient", bound=BaseADBCClient, covariant=True)
 
 class ADBCClientFactory(Protocol, Generic[TClient]):  # noqa: D101
     @abstractmethod
-    def __call__(self, server_host: str, environment_id: int, auth_token: str, url_format: str) -> TClient:
+    def __call__(
+        self,
+        server_host: str,
+        environment_id: int,
+        auth_token: str,
+        url_format: str,
+        extra_headers: Optional[Dict[str, str]] = None,
+    ) -> TClient:
         """Initialize the Semantic Layer client.
 
         Args:
@@ -96,5 +106,6 @@ class ADBCClientFactory(Protocol, Generic[TClient]):  # noqa: D101
             environment_id: your dbt environment ID
             auth_token: the API auth token
             url_format: the URL format string to construct the final URL with
+            extra_headers: extra headers to be sent with the request.
         """
         pass

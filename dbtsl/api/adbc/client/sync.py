@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Iterator, Optional
+from typing import Dict, Iterator, Optional
 
 import pyarrow as pa
 from typing_extensions import Self, Unpack
@@ -17,6 +17,7 @@ class SyncADBCClient(BaseADBCClient):
         environment_id: int,
         auth_token: str,
         url_format: Optional[str] = None,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> None:
         """Initialize the ADBC client.
 
@@ -28,8 +29,9 @@ class SyncADBCClient(BaseADBCClient):
                 into a full URL. If `None`, the default
                 `grpc+tls://{server_host}:443`
                 will be assumed.
+            extra_headers: extra headers to be sent with the request.
         """
-        super().__init__(server_host, environment_id, auth_token, url_format)
+        super().__init__(server_host, environment_id, auth_token, url_format, extra_headers=extra_headers)
 
     @contextmanager
     def session(self) -> Iterator[Self]:
