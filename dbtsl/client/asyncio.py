@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Optional, Union
+from typing import AsyncGenerator, Optional, Union
 
 from typing_extensions import Self
 
@@ -49,7 +49,7 @@ class AsyncSemanticLayerClient(BaseSemanticLayerClient[AsyncGraphQLClient, Async
         )
 
     @asynccontextmanager
-    async def session(self) -> AsyncIterator[Self]:
+    async def session(self) -> AsyncGenerator[Self, None]:
         """Establish a connection with the dbt Semantic Layer's servers."""
         if self._has_session:
             raise ValueError("Cannot open session within session.")

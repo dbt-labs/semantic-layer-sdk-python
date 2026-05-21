@@ -1,13 +1,15 @@
 # mypy: disable-error-code="misc"
 
 from contextlib import AbstractAsyncContextManager
-from typing import AsyncIterator, List, Optional, Union
+from typing import List, Optional, Union
 
 import pyarrow as pa
+from typing import AsyncGenerator
 from typing_extensions import Self, Unpack, overload
 
 from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByMetric, QueryParameters
 from dbtsl.models import AsyncMetric, Dimension, Entity, EnvironmentInfo, Measure, SavedQuery
+from dbtsl.models.query import QueryId
 from dbtsl.timeout import TimeoutOptions
 
 class AsyncSemanticLayerClient:
@@ -119,7 +121,10 @@ class AsyncSemanticLayerClient:
     async def environment_info(self) -> EnvironmentInfo:
         """Get information about the Semantic Layer environment."""
         ...
+    async def cancel_query(self, query_id: QueryId) -> QueryId:
+        """Cancel a running query."""
+        ...
 
-    def session(self) -> AbstractAsyncContextManager[AsyncIterator[Self]]:
+    def session(self) -> AbstractAsyncContextManager[AsyncGenerator[Self, None]]:
         """Establish a connection with the dbt Semantic Layer's servers."""
         ...

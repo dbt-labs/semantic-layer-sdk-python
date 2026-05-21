@@ -1,13 +1,14 @@
 # mypy: disable-error-code="misc"
 
 from contextlib import AbstractContextManager
-from typing import Iterator, List, Optional, Union
+from typing import Generator, List, Optional, Union
 
 import pyarrow as pa
 from typing_extensions import Self, Unpack, overload
 
 from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByMetric, QueryParameters
 from dbtsl.models import Dimension, Entity, EnvironmentInfo, Measure, SavedQuery, SyncMetric
+from dbtsl.models.query import QueryId
 from dbtsl.timeout import TimeoutOptions
 
 class SyncSemanticLayerClient:
@@ -118,7 +119,10 @@ class SyncSemanticLayerClient:
     def environment_info(self) -> EnvironmentInfo:
         """Get information about the Semantic Layer environment."""
         ...
+    def cancel_query(self, query_id: QueryId) -> QueryId:
+        """Cancel a running query."""
+        ...
 
-    def session(self) -> AbstractContextManager[Iterator[Self]]:
+    def session(self) -> AbstractContextManager[Generator[Self, None, None]]:
         """Establish a connection with the dbt Semantic Layer's servers."""
         ...

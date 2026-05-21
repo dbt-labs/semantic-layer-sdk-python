@@ -1,6 +1,6 @@
 import time
 from contextlib import contextmanager
-from typing import Dict, Iterator, Optional, Union
+from typing import Dict, Generator, Optional, Union
 
 import pyarrow as pa
 from gql import gql
@@ -71,7 +71,7 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
         )
 
     @contextmanager
-    def session(self) -> Iterator[Self]:
+    def session(self) -> Generator[Self, None, None]:
         """Open a session in the underlying requests transport.
 
         A "session" is a TCP connection with the server. All operations

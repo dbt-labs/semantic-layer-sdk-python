@@ -1,7 +1,7 @@
 # mypy: disable-error-code="misc"
 
 from contextlib import AbstractContextManager
-from typing import Iterator, List, Optional, Union
+from typing import Generator, List, Optional, Union
 
 import pyarrow as pa
 from typing_extensions import Self, Unpack, overload
@@ -15,6 +15,7 @@ from dbtsl.models import (
     SavedQuery,
     SyncMetric,
 )
+from dbtsl.models.query import QueryId
 from dbtsl.timeout import TimeoutOptions
 
 class SyncGraphQLClient:
@@ -28,7 +29,7 @@ class SyncGraphQLClient:
         *,
         lazy: bool,
     ) -> None: ...
-    def session(self) -> AbstractContextManager[Iterator[Self]]: ...
+    def session(self) -> AbstractContextManager[Generator[Self, None, None]]: ...
     @property
     def has_session(self) -> bool: ...
     def metrics(self) -> List[SyncMetric]:
@@ -84,6 +85,9 @@ class SyncGraphQLClient:
         ...
     def environment_info(self) -> EnvironmentInfo:
         """Get information about the Semantic Layer environment."""
+        ...
+    def cancel_query(self, query_id: QueryId) -> QueryId:
+        """Cancel a running query."""
         ...
     @overload
     def query(

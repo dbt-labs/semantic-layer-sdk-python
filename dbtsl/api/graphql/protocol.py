@@ -318,6 +318,38 @@ class GetQueryResultOperation(ProtocolOperation[GetQueryResultVariables, QueryRe
         return decode_to_dataclass(data["query"], QueryResult)
 
 
+class CancelQueryOperation(ProtocolOperation[JobStatusVariables, QueryId]):
+    """Cancel a query that was already created."""
+
+    @override
+    def get_request_text(self, *, lazy: bool) -> str:
+        query = """
+        mutation cancelQuery(
+            $environmentId: BigInt!,
+            $queryId: String!,
+        ) {
+            cancelQuery(
+                environmentId: $environmentId,
+                queryId: $queryId,
+            ) {
+                queryId
+            }
+        }
+        """
+        return query
+
+    @override
+    def get_request_variables(self, environment_id: int, variables: JobStatusVariables) -> Dict[str, Any]:
+        return {
+            "environmentId": environment_id,
+            "queryId": variables["query_id"],
+        }
+
+    @override
+    def parse_response(self, data: Dict[str, Any]) -> QueryId:
+        return QueryId(data["cancelQuery"]["queryId"])
+
+
 class CompileSqlOperation(ProtocolOperation[QueryParameters, str]):
     """Get the compiled SQL that would be sent to the warehouse by a query."""
 
@@ -396,5 +428,6 @@ class GraphQLProtocol:
     saved_queries = ListSavedQueriesOperation()
     create_query = CreateQueryOperation()
     get_query_result = GetQueryResultOperation()
+    cancel_query = CancelQueryOperation()
     compile_sql = CompileSqlOperation()
     environment_info = GetEnvironmentInfoOperation()
