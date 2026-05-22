@@ -2,7 +2,7 @@ import asyncio
 import time
 from builtins import TimeoutError as BuiltinTimeoutError
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Dict, Optional, Union
+from typing import AsyncGenerator, Dict, Optional, Union
 
 import pyarrow as pa
 from gql import gql
@@ -83,7 +83,7 @@ class AsyncGraphQLClient(BaseGraphQLClient[AIOHTTPTransport, AsyncClientSession]
         )
 
     @asynccontextmanager
-    async def session(self) -> AsyncIterator[Self]:
+    async def session(self) -> AsyncGenerator[Self, None]:
         """Open a session in the underlying aiohttp transport.
 
         A "session" is a TCP connection with the server. All operations
