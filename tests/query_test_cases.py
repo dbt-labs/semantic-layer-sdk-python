@@ -51,4 +51,9 @@ TEST_QUERIES: List[QueryParameters] = [
             GroupByParam(name="metric_time", grain="week", type=GroupByType.DIMENSION),
         ],
     },
+    # group by param object without grain (categorical dimension)
+    {
+        "metrics": ["order_total"],
+        "group_by": [GroupByParam(name="business_owner__acquisition_channel", type=GroupByType.DIMENSION)],
+    },
 ]

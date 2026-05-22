@@ -17,7 +17,7 @@ class GroupByParam:
 
     name: str
     type: GroupByType
-    grain: Optional[str]
+    grain: Optional[str] = None
 
 
 @dataclass(frozen=True)
