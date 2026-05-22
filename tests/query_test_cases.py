@@ -54,6 +54,6 @@ TEST_QUERIES: List[QueryParameters] = [
     # group by param object without grain (categorical dimension)
     {
         "metrics": ["order_total"],
-        "group_by": [GroupByParam(name="business_owner__acquisition_channel", type=GroupByType.DIMENSION)],
+        "group_by": [GroupByParam(name="customer__customer_type", type=GroupByType.DIMENSION)],
     },
 ]
