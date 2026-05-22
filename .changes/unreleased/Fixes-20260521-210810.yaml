@@ -1,3 +1,0 @@
-kind: Fixes
-body: Make grain optional (default None) in GroupByParam so categorical group_by dimensions do not require a grain field
-time: 2026-05-21T21:08:10.518263-07:00
