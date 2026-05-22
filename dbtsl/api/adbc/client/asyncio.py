@@ -1,6 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Optional
+from typing import AsyncGenerator, Optional
 
 import pyarrow as pa
 from typing_extensions import Self, Unpack
@@ -34,7 +34,7 @@ class AsyncADBCClient(BaseADBCClient):
         self._loop = asyncio.get_running_loop()
 
     @asynccontextmanager
-    async def session(self) -> AsyncIterator[Self]:
+    async def session(self) -> AsyncGenerator[Self, None]:
         """Open a connection in the underlying ADBC driver.
 
         All requests made during the same session will reuse the same connection.

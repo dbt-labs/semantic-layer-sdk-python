@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Iterator, Optional
+from typing import Generator, Optional
 
 import pyarrow as pa
 from typing_extensions import Self, Unpack
@@ -32,7 +32,7 @@ class SyncADBCClient(BaseADBCClient):
         super().__init__(server_host, environment_id, auth_token, url_format)
 
     @contextmanager
-    def session(self) -> Iterator[Self]:
+    def session(self) -> Generator[Self, None, None]:
         """Open a connection in the underlying ADBC driver.
 
         All requests made during the same session will reuse the same connection.

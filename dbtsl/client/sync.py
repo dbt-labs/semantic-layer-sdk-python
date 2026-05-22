@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Iterator, Optional, Union
+from typing import Generator, Optional, Union
 
 from typing_extensions import Self
 
@@ -49,7 +49,7 @@ class SyncSemanticLayerClient(BaseSemanticLayerClient[SyncGraphQLClient, SyncADB
         )
 
     @contextmanager
-    def session(self) -> Iterator[Self]:
+    def session(self) -> Generator[Self, None, None]:
         """Establish a connection with the dbt Semantic Layer's servers."""
         if self._has_session:
             raise ValueError("Cannot open session within session.")
