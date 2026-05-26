@@ -4,7 +4,8 @@ from contextlib import AbstractAsyncContextManager
 from typing import List, Optional, Self, Union
 
 import pyarrow as pa
-from typing_extensions import AsyncIterator, Unpack, overload
+from typing import AsyncGenerator
+from typing_extensions import Unpack, overload
 
 from dbtsl.api.shared.query_params import GroupByParam, OrderByGroupBy, OrderByMetric, QueryParameters
 from dbtsl.models import (
@@ -15,6 +16,7 @@ from dbtsl.models import (
     Measure,
     SavedQuery,
 )
+from dbtsl.models.query import QueryId
 from dbtsl.timeout import TimeoutOptions
 
 class AsyncGraphQLClient:
@@ -28,7 +30,7 @@ class AsyncGraphQLClient:
         *,
         lazy: bool,
     ) -> None: ...
-    def session(self) -> AbstractAsyncContextManager[AsyncIterator[Self]]: ...
+    def session(self) -> AbstractAsyncContextManager[AsyncGenerator[Self, None]]: ...
     @property
     def has_session(self) -> bool: ...
     async def metrics(self) -> List[AsyncMetric]:
@@ -52,6 +54,9 @@ class AsyncGraphQLClient:
         ...
     async def environment_info(self) -> EnvironmentInfo:
         """Get information about the Semantic Layer environment."""
+        ...
+    async def cancel_query(self, query_id: QueryId) -> QueryId:
+        """Cancel a running query."""
         ...
 
     @overload
