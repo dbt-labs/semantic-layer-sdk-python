@@ -18,6 +18,38 @@ class BaseADBCClient:
     PROTOCOL = ADBCProtocol
     DEFAULT_URL_FORMAT = env.DEFAULT_ADBC_URL_FORMAT
 
+    # `adbc_driver_flightsql.DatabaseOptions` (as vendored here) does not expose a
+    # `TIMEOUT_CONNECT` member, but the underlying Go/C driver has accepted this string
+    # key since before this SDK's declared minimum `adbc-driver-flightsql` version
+    # (confirmed against the driver source: apache/arrow-adbc
+    # go/adbc/driver/flightsql/flightsql_driver.go), so we set it as a raw string.
+    #
+    # This bounds ONLY the gRPC dial (raw TCP/TLS connection establishment) via
+    # `grpc.WithConnectParams(...MinConnectTimeout...)` -- see
+    # go/adbc/driver/flightsql/timeouts.go `connectParams()` and
+    # `flightsql_database.go` `getFlightClient()`. It does NOT attach a deadline to any
+    # Flight RPC, including `Handshake`: the driver's timeout interceptor
+    # (`getTimeout()` in timeouts.go) only recognizes `GetFlightInfo`/`DoGet`/
+    # `DoPut`/`DoAction` method suffixes, and `Handshake` isn't one of them. (For the
+    # bearer-token auth this client uses, the driver never even issues a `Handshake`
+    # call in the first place -- see `Open()`/`getFlightClient()` in
+    # flightsql_database.go, which pass a nil `ClientAuthHandler` and skip
+    # `AuthenticateBasicToken`; `Handshake` is only invoked for username/password auth.)
+    # We deliberately leave `.query`/`.fetch`/`.update` unset: real customer queries can
+    # legitimately take 10+ minutes (see semantic-layer-gateway's ingress.yaml, which
+    # sets a 670s proxy-read-timeout for exactly this reason), so a short timeout must
+    # never apply to them. Establishing the connection, in contrast, should be fast, so
+    # a short bound here is safe.
+    #
+    # 15s was chosen with wide margin over observed latency to SLG: DI-5183's Datadog
+    # investigation found the (unrelated, RPC-level) Handshake call completes in
+    # ~650-810ms fleet-wide -- a reasonable proxy for normal network+TLS overhead on
+    # this path -- so 15s gives roughly 20x headroom over that figure, generous enough
+    # to absorb jitter while still failing far faster than the unbounded hang it
+    # replaces.
+    _CONNECT_TIMEOUT_SECONDS: int = 15
+    _DB_KWARGS_TIMEOUT_CONNECT_KEY: str = "adbc.flight.sql.rpc.timeout_seconds.connect"
+
     @classmethod
     def _extra_db_kwargs(cls) -> Dict[str, str]:
         return {
@@ -25,6 +57,10 @@ class BaseADBCClient:
             f"{DatabaseOptions.RPC_CALL_HEADER_PREFIX.value}user-agent": env.PLATFORM.user_agent,
             # Increase the default max msg size in case of queries with large batches
             DatabaseOptions.WITH_MAX_MSG_SIZE.value: f"{1024 * 1024 * 512}",
+            # Bound how long we wait for the connection itself to be established. See
+            # the class-level comment on `_CONNECT_TIMEOUT_SECONDS` for why only this
+            # timeout (and not `.query`/`.fetch`/`.update`) is set.
+            cls._DB_KWARGS_TIMEOUT_CONNECT_KEY: str(cls._CONNECT_TIMEOUT_SECONDS),
         }
 
     def __init__(  # noqa: D107
@@ -59,8 +95,10 @@ class BaseADBCClient:
             if err.status_code == AdbcStatusCode.INVALID_ARGUMENT:
                 raise QueryFailedError(err.args[0], err.status_code) from err
 
-            # TODO: timeouts are not implemented for ADBC
-            # See: https://arrow.apache.org/adbc/current/driver/flight_sql.html#timeouts
+            # Only the connect (dial) timeout is implemented -- see
+            # `_CONNECT_TIMEOUT_SECONDS` above. Query/fetch/update timeouts remain
+            # intentionally unset (see: https://arrow.apache.org/adbc/current/driver/
+            # flight_sql.html#timeouts), since queries can legitimately run long.
             if err.status_code == AdbcStatusCode.TIMEOUT:
                 raise TimeoutError() from err
 

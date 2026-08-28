@@ -1,0 +1,3 @@
+kind: Fixes
+body: Set a 15s connect timeout for ADBC connections so a stalled dial fails fast instead of hanging forever. Query/fetch/update timeouts remain intentionally unset since queries can legitimately run long.
+time: 2026-08-28T14:46:51.000000-07:00
