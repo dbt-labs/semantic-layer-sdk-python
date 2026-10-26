@@ -1,4 +1,4 @@
-from dbtsl.error import RetryTimeoutError, SemanticLayerError, TimeoutError
+from dbtsl.error import QueryFailedError, RetryTimeoutError, SemanticLayerError, TimeoutError
 
 
 def test_error_str_calls_repr() -> None:
@@ -29,3 +29,8 @@ def test_retry_timeout_error_with_status() -> None:
     assert err.timeout_s == 30
     assert err.status == "COMPILED"
     assert str(err) == "RetryTimeoutError(timeout_s=30, status=COMPILED)"
+
+
+def test_query_failed_error_error_type() -> None:
+    assert QueryFailedError("boom", "FAILED", "qid", error_type="SomeError").error_type == "SomeError"
+    assert QueryFailedError("boom", "FAILED").error_type is None

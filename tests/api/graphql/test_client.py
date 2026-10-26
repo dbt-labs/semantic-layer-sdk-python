@@ -10,7 +10,7 @@ from pytest_mock import MockerFixture
 from dbtsl.api.graphql.client.asyncio import AsyncGraphQLClient
 from dbtsl.api.graphql.client.sync import SyncGraphQLClient
 from dbtsl.api.graphql.protocol import GetQueryResultVariables, GraphQLProtocol, ProtocolOperation
-from dbtsl.error import RetryTimeoutError
+from dbtsl.error import QueryFailedError, RetryTimeoutError
 from dbtsl.models.query import QueryId, QueryResult, QueryStatus
 
 # The following 2 tests are copies of each other since testing the same sync/async functionality is
@@ -206,3 +206,46 @@ async def test_async_poll_timeout_includes_status(mocker: MockerFixture) -> None
             await client.query(metrics=["m1"])
 
     assert exc_info.value.status == "COMPILED"
+
+
+def test_failed_query_carries_error_type(mocker: MockerFixture) -> None:
+    """A failed query exposes the server's error type on the raised error."""
+    client = SyncGraphQLClient(server_host="test", environment_id=0, auth_token="test", lazy=False)
+    failed = QueryResult(
+        query_id=QueryId("qid"),
+        status=QueryStatus.FAILED,
+        sql=None,
+        error="boom",
+        total_pages=None,
+        arrow_result=None,
+        error_type="SomeError",
+    )
+    mocker.patch.object(client, "create_query", return_value=QueryId("qid"))
+    mocker.patch.object(client, "_poll_until_complete", return_value=failed)
+
+    with pytest.raises(QueryFailedError) as exc_info:
+        client.query(metrics=["m"])
+
+    assert exc_info.value.error_type == "SomeError"
+
+
+def test_query_result_polling_requests_and_decodes_error_type() -> None:
+    """The polling query asks for `errorType` and the model keeps it."""
+    op = GraphQLProtocol.get_query_result
+    assert "errorType" in op.get_request_text(lazy=False)
+
+    result = op.parse_response(
+        {
+            "query": {
+                "queryId": "qid",
+                "status": "FAILED",
+                "sql": None,
+                "error": "x",
+                "totalPages": None,
+                "arrowResult": None,
+                "errorType": "SomeError",
+            }
+        }
+    )
+
+    assert result.error_type == "SomeError"
