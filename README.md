@@ -27,6 +27,7 @@ client = SemanticLayerClient(
     host="semantic-layer.cloud.getdbt.com",
 )
 
+
 # query the first metric by `metric_time`
 def main():
     with client.session():
@@ -36,6 +37,7 @@ def main():
             group_by=["metric_time"],
         )
         print(table)
+
 
 main()
 ```
@@ -58,6 +60,7 @@ client = AsyncSemanticLayerClient(
     host="semantic-layer.cloud.getdbt.com",
 )
 
+
 async def main():
     async with client.session():
         metrics = await client.metrics()
@@ -66,6 +69,7 @@ async def main():
             group_by=["metric_time"],
         )
         print(table)
+
 
 asyncio.run(main())
 ```
@@ -108,6 +112,7 @@ Check out our [usage examples](./examples/) to learn more.
 By default, dbt the SDK sends some [platform-related information](./dbtsl/env.py) to dbt Labs. If you'd like to opt out, do
 ```python
 from dbtsl.env import PLATFORM
+
 PLATFORM.anonymous = True
 
 # ... initialize client
