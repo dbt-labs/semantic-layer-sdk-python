@@ -148,7 +148,9 @@ class SyncGraphQLClient(BaseGraphQLClient[RequestsHTTPTransport, SyncClientSessi
             },
         )
         if first_page_results.status != QueryStatus.SUCCESSFUL:
-            raise QueryFailedError(first_page_results.error, first_page_results.status, query_id)
+            raise QueryFailedError(
+                first_page_results.error, first_page_results.status, query_id, first_page_results.error_type
+            )
 
         assert first_page_results.total_pages is not None
 

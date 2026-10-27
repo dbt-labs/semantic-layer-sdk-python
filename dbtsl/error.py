@@ -63,13 +63,16 @@ class RetryTimeoutError(TimeoutError):
 class QueryFailedError(SemanticLayerError):
     """Raise whenever a query has failed."""
 
-    def __init__(self, message: Any, status: Any, query_id: Optional[str] = None) -> None:
+    def __init__(
+        self, message: Any, status: Any, query_id: Optional[str] = None, error_type: Optional[str] = None
+    ) -> None:
         """Initialize the query failed error.
 
         Args:
             message: The message or error details
             status: The stringified status or the response
             query_id: The query ID for GQL requests
+            error_type: The class name of the exception that failed the query on the server, if known
         """
         # extract first error message if we get a list with just 1 message
         if isinstance(message, list) and len(message) == 1:  # pyright: ignore
@@ -77,6 +80,7 @@ class QueryFailedError(SemanticLayerError):
         self.message = str(message)  # pyright: ignore
         self.status = str(status)
         self.query_id = query_id
+        self.error_type = error_type
 
     def __str__(self) -> str:  # noqa: D105
         content = f'message="{self.message}"), status={self.status}'

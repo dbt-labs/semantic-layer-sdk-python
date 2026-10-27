@@ -32,6 +32,7 @@ class QueryResult(BaseModel, GraphQLFragmentMixin):
     error: Optional[str]
     total_pages: Optional[int]
     arrow_result: Optional[str]
+    error_type: Optional[str] = None
 
     @cached_property
     def result_table(self) -> pa.Table:
